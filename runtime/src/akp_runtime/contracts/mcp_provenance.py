@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 class ProvenanceStepModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    layer: Literal["package", "object", "semantic_unit", "edge", "embedding", "retrieval"]
+    layer: Literal["pack", "package", "object", "semantic_unit", "edge", "embedding", "retrieval"]
     identifier: str
     origin: Literal["authored", "derived", "inferred", "generated"]
     source_path: str | None = None
