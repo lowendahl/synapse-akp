@@ -37,6 +37,8 @@ status: stable
 | [ADR-022](./adr-022-portable-graph.md) | The Package Graph SHALL Be Portable | 2026-07-26 |
 | [ADR-023](./adr-023-immutable-releases.md) | Released Package Versions SHOULD Be Immutable | 2026-07-26 |
 | [ADR-024](./adr-024-inferred-vs-authored.md) | Inferred Knowledge SHALL Be Distinguishable from Authored Knowledge | 2026-07-26 |
+| [ADR-025](./adr-025-pack-format-specification.md) | Pack Format Specification (Schema 2.0.0) | 2026-07-26 |
+| [ADR-026](./adr-026-mcp-stdio-transport.md) | MCP stdio Transport for Runtime | 2026-07-26 |
 
 ## Open
 
