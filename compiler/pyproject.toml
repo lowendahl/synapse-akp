@@ -1,6 +1,6 @@
 [project]
 name = "kp-compiler"
-version = "0.1.0"
+version = "0.2.0"
 description = "Knowledge Pack Compiler — transforms OKF canonical sources into immutable Knowledge Packs"
 requires-python = ">=3.11"
 license = { text = "MIT" }
