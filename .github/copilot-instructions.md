@@ -67,6 +67,45 @@ kp-explore dist/*.duckdb      # Generate 3-D explorer
 - Cross-pack references use qualified IDs: `mcem.stage.stage-1-listen-consult`.
 - Each knowledge base has a `pack.yaml` entry point for auto-discovery.
 
+## Development Workflow (MANDATORY)
+
+All work follows this sequence. No step may be skipped or reordered.
+
+```
+Epic / PBI
+    ↓
+Planning (Planner Agent)
+    ↓
+Component Definition (create/update docs/components/*.md)
+  - Purpose, Responsibilities, Out of Scope, Promises, Invariants
+    ↓
+Tests (write tests FIRST — they start RED)
+  - Tests honour component promises and invariants
+    ↓
+Implementation (write code to turn tests GREEN)
+    ↓
+Epic Complete Gate:
+  → Architecture Governor review
+  → Quality Agent review
+  → Test Coverage validation
+    ↓
+Human Code Review
+    ↓
+Commit & merge to main
+```
+
+### Rules
+
+1. **No code without a component definition** — every module must trace to a
+   `docs/components/*.md` that declares its promises and invariants.
+2. **Tests before code** — tests are written against the component contract
+   *before* the implementation exists. The test suite defines done.
+3. **Red → Green → Refactor** — TDD cycle. Never commit red tests.
+4. **Gate reviews are blocking** — architecture governor, quality, and test
+   coverage agents must pass before human review is requested.
+5. **Commits only to feature branches** — main is protected; PRs require passing
+   gates + human approval.
+
 ## Principles (apply to all work)
 
 1. **Knowledge as code** — version-controlled, reviewed, tested, released.

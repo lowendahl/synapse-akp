@@ -17,6 +17,29 @@ that respect architectural boundaries and dependency ordering.
 
 ## Planning Protocol
 
+### 0. Workflow Position
+
+The Planner is the **first agent** invoked after a new Epic/PBI is created.
+The mandatory development workflow is:
+
+```
+Epic / PBI
+  → Planner (YOU ARE HERE)
+  → Component Definition (docs/components/*.md)
+  → Tests (RED)
+  → Implementation (GREEN)
+  → Gate Reviews (Architecture Governor + Quality + Test Coverage)
+  → Human Code Review
+  → Commit & merge
+```
+
+The Planner MUST:
+- Ensure every task in the plan includes a **component definition step** before
+  any test or implementation step.
+- Sequence work as: component doc → tests → code. Never plan code before tests.
+- Include a **gate review milestone** at the end of each epic.
+- Never plan a task that skips the component definition.
+
 ### 1. Understand
 
 Before planning, always:
@@ -44,6 +67,12 @@ Break work into tasks that are:
 - **Testable** — has a clear "done" criteria.
 - **Independent** — minimal coupling to other tasks where possible.
 - **Ordered** — explicit dependencies between tasks.
+
+Every feature task MUST follow this internal sequence:
+1. Create/update `docs/components/<module>.md` (responsibilities, out-of-scope, promises, invariants)
+2. Write tests that validate the component promises (tests start RED)
+3. Implement code to make tests GREEN
+4. Verify lint + format pass
 
 ### 3. Sequence
 
@@ -78,6 +107,18 @@ After each major milestone:
 - Update plan if scope changed.
 - Communicate progress and remaining work.
 
+### 6. Epic Completion Gate
+
+When all PBIs in an epic are done, the plan MUST include:
+- [ ] Run Architecture Governor review
+- [ ] Run Quality Agent review
+- [ ] Run Test Coverage validation
+- [ ] Address all VIOLATION and DEFECT findings
+- [ ] Request human code review
+- [ ] Commit and merge to main
+
+No epic is complete until all gate reviews pass.
+
 ## Plan Format
 
 ```markdown
@@ -87,13 +128,18 @@ After each major milestone:
 ## Tasks
 
 ### Phase 1 — [Foundation]
-- [ ] Task-1: [description] (Agent: X, Size: S)
-- [ ] Task-2: [description] (Agent: Y, Size: M)
+- [ ] Task-1: Component definition for X (update docs/components/X.md)
+- [ ] Task-2: Write tests for X (RED) (Agent: Quality, Size: M)
   - depends on: Task-1
+- [ ] Task-3: Implement X (GREEN) (Agent: Y, Size: L)
+  - depends on: Task-2
 
-### Phase 2 — [Implementation]
-- [ ] Task-3: [description] (Agent: Z, Size: L)
-  - depends on: Task-1, Task-2
+### Phase N — [Epic Gate]
+- [ ] Architecture Governor review
+- [ ] Quality Agent review
+- [ ] Test Coverage validation
+- [ ] Human code review
+- [ ] Commit & merge
 
 ## Risks
 - [Risk description] → [Mitigation]
@@ -127,3 +173,7 @@ After each major milestone:
 - ❌ Planning implementation details that belong to the executor
 - ❌ Ignoring ADR constraints in the plan
 - ❌ No checkpoint strategy (plan-and-forget)
+- ❌ Planning code before component definition exists
+- ❌ Planning implementation before tests are written
+- ❌ Skipping the epic completion gate
+- ❌ Merging without all three gate reviews passing
