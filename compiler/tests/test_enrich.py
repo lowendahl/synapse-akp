@@ -25,7 +25,7 @@ def _make_obj(
         sections=[],
         relationships=[],
         aliases=list(aliases or []),
-        metadata={},
+        properties={},
     )
 
 

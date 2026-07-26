@@ -14,7 +14,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from kp_compiler import __version__
 from kp_compiler.contracts.protocols import Diagnostic, Severity
+from kp_compiler.contracts.errors import OntologyViolation
 from kp_compiler.domain.models import KnowledgeObject, SemanticUnit
 from kp_compiler.domain.ontology import Ontology
 from kp_compiler.domain.rules import PackRules
@@ -209,7 +211,7 @@ def compile_pack(
         try:
             obj = parse_source(content, rel_path)
             objects.append(obj)
-        except Exception as e:
+        except (OntologyViolation, ValueError, KeyError, TypeError) as e:
             parse_errors += 1
             all_diagnostics.append(Diagnostic(
                 severity=Severity.ERROR,
@@ -277,7 +279,7 @@ def compile_pack(
                 duration_seconds=embed_duration,
             ))
         except Exception as e:
-            print(f"[embed] SKIPPED: {e}")
+            print(f"[embed] SKIPPED — {type(e).__name__}: {e}")
             all_diagnostics.append(Diagnostic(
                 severity=Severity.WARNING,
                 source_file="",
@@ -288,9 +290,21 @@ def compile_pack(
         print("[embed] SKIPPED (--skip-embeddings)")
 
     # ── Stage 11: Cross-Pack Validation (V2) ───────────────────────────────
+    dep_ids: set[str] = set()
+    dep_domain = ""
+    if dependency_pack and dependency_pack.exists():
+        from kp_compiler.stages.cross_pack import (
+            _detect_dependency_domain,
+            load_dependency_manifest,
+        )
+
+        dep_ids = load_dependency_manifest(dependency_pack)
+        dep_domain = _detect_dependency_domain(dependency_pack) or ""
+
     cross_pack_result = validate_cross_pack_refs(
         objects,
-        dependency_pack=dependency_pack,
+        dependency_ids=dep_ids,
+        dependency_domain=dep_domain,
         pack_id=pack_id,
     )
     all_diagnostics.extend(cross_pack_result.diagnostics)
@@ -303,6 +317,15 @@ def compile_pack(
         refs_resolved=cross_pack_result.refs_resolved,
         refs_broken=cross_pack_result.refs_broken,
     ))
+
+    # ── Gate: fail before writing if errors exist ───────────────────────
+    current_errors = [d for d in all_diagnostics if d.severity == Severity.ERROR]
+    if current_errors:
+        duration = time.time() - start_time
+        print(f"\n[FAIL] BUILD FAILED before write — {len(current_errors)} error(s):")
+        for d in current_errors[:20]:
+            print(f"  {d.severity.value}: [{d.source_file}] {d.message}")
+        return False, all_diagnostics
 
     # ── Stage 12: Write Pack ───────────────────────────────────────────────
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -330,11 +353,7 @@ def compile_pack(
 
     # V2: Write cross-pack refs
     if cross_pack_result.cross_refs:
-        resolved_ids = set()
-        if dependency_pack and dependency_pack.exists():
-            from kp_compiler.stages.cross_pack import load_dependency_manifest
-            resolved_ids = load_dependency_manifest(dependency_pack)
-        writer.write_cross_pack_refs(cross_pack_result.cross_refs, resolved_ids)
+        writer.write_cross_pack_refs(cross_pack_result.cross_refs, dep_ids)
 
     # Manifest
     content_hash = hashlib.sha256(
@@ -343,10 +362,10 @@ def compile_pack(
 
     manifest = {
         "pack_id": pack_id,
-        "pack_version": "0.2.0",
+        "pack_version": __version__,
         "schema_version": "2.0.0",
         "ontology_version": ontology.version,
-        "compiler_version": "0.2.0",
+        "compiler_version": __version__,
         "build_timestamp": datetime.now(timezone.utc).isoformat(),
         "source_file_count": str(len(source_files)),
         "object_count": str(len(objects)),

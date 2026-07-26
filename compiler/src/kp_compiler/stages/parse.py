@@ -129,7 +129,15 @@ def determine_object_type(type_str: str) -> ObjectType:
         "Index": ObjectType.INDEX,
         "Log": ObjectType.LOG,
     }
-    return type_map.get(type_str, ObjectType.PROCESS)
+    result = type_map.get(type_str)
+    if result is None:
+        from kp_compiler.contracts.errors import OntologyViolation
+        raise OntologyViolation(
+            source_file="",
+            object_id="",
+            violation=f"Unknown type '{type_str}' — not in type map",
+        )
+    return result
 
 
 def parse_source(content: str, source_path: str) -> KnowledgeObject:
@@ -139,7 +147,11 @@ def parse_source(content: str, source_path: str) -> KnowledgeObject:
     """
     frontmatter, body = parse_frontmatter(content)
 
-    obj_type = determine_object_type(frontmatter.get("type", "Process"))
+    raw_type = frontmatter.get("type", "")
+    if not raw_type:
+        obj_type = ObjectType.PROCESS
+    else:
+        obj_type = determine_object_type(raw_type)
     obj_id = frontmatter.get("id", "")
     title = frontmatter.get("title", "")
     description = frontmatter.get("description", "")
@@ -161,12 +173,14 @@ def parse_source(content: str, source_path: str) -> KnowledgeObject:
     # Parse structured relationships from frontmatter (ADR-014)
     fm_rels = frontmatter.get("relationships") or []
     for rel in fm_rels:
-        if isinstance(rel, dict) and "predicate" in rel and "object" in rel:
-            relationships.append(Relationship(
-                subject_id=obj_id,
-                predicate=rel["predicate"],
-                object_id=rel["object"],
-            ))
+        if isinstance(rel, dict) and "predicate" in rel:
+            target = rel.get("object") or rel.get("object_id") or ""
+            if target:
+                relationships.append(Relationship(
+                    subject_id=obj_id,
+                    predicate=rel["predicate"],
+                    object_id=target,
+                ))
 
     provenance = Provenance(
         source_file=source_path,

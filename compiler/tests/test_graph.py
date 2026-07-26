@@ -44,8 +44,8 @@ class TestBuildGraph:
         ]
         result = build_graph(objects)
         assert result.metrics["edge_count"] == 1
-        assert result.edges[0]["subject_id"] == "csu.metric.a"
-        assert result.edges[0]["object_id"] == "csu.metric.b"
+        assert result.edges[0].subject_id == "csu.metric.a"
+        assert result.edges[0].object_id == "csu.metric.b"
 
     def test_orphan_detection(self) -> None:
         objects = [_make_object("csu.metric.lonely")]
@@ -69,6 +69,6 @@ class TestBuildGraph:
         ]
         result = build_graph(objects)
         # b should have higher pagerank (it has an incoming edge)
-        a_pr = next(n["pagerank"] for n in result.nodes if n["id"] == "csu.metric.a")
-        b_pr = next(n["pagerank"] for n in result.nodes if n["id"] == "csu.metric.b")
+        a_pr = next(n.pagerank for n in result.nodes if n.id == "csu.metric.a")
+        b_pr = next(n.pagerank for n in result.nodes if n.id == "csu.metric.b")
         assert b_pr > a_pr

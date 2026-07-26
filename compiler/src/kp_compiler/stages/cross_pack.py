@@ -58,7 +58,8 @@ def _detect_dependency_domain(dependency_pack: Path) -> str | None:
 
 def validate_cross_pack_refs(
     objects: list[KnowledgeObject],
-    dependency_pack: Path | None = None,
+    dependency_ids: set[str] | None = None,
+    dependency_domain: str = "",
     pack_id: str = "",
 ) -> CrossPackResult:
     """Validate that cross-pack references resolve against the dependency manifest.
@@ -73,15 +74,8 @@ def validate_cross_pack_refs(
     # Derive own domain from pack_id (strip 'kp-' prefix)
     own_domain = pack_id.removeprefix("kp-") if pack_id else ""
 
-    # Load dependency manifest if available
-    dep_ids: set[str] = set()
-    dep_domain: str = ""
-    if dependency_pack and dependency_pack.exists():
-        dep_ids = load_dependency_manifest(dependency_pack)
-        dep_domain = _detect_dependency_domain(dependency_pack) or ""
-
-    # Build set of own-pack IDs for intra-pack validation
-    own_ids = {obj.id for obj in objects if obj.id}
+    dep_ids = dependency_ids or set()
+    dep_domain = dependency_domain
 
     for obj in objects:
         if not obj.id:

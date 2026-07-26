@@ -106,7 +106,7 @@ class Provenance(BaseModel):
 
     source_file: str
     source_revision: Optional[str] = None
-    compiler_version: str = "0.1.0"
+    compiler_version: str = "0.2.0"  # TODO: source from package version without circular import
     stage: str = "parse"
     origin: Origin = Origin.AUTHORED
     timestamp: Optional[datetime] = None
@@ -132,7 +132,7 @@ class SemanticUnit(BaseModel):
 class KnowledgeObject(BaseModel):
     """Base model for all canonical knowledge objects in the IR."""
 
-    model_config = ConfigDict(frozen=False)
+    model_config = ConfigDict(extra="forbid")
 
     id: str
     type: ObjectType
@@ -146,7 +146,7 @@ class KnowledgeObject(BaseModel):
     provenance: Optional[Provenance] = None
     relationships: list[Relationship] = Field(default_factory=list)
     sections: list[Section] = Field(default_factory=list)
-    properties: dict = Field(default_factory=dict)
+    properties: dict[str, str | int | float | bool | list[str]] = Field(default_factory=dict)
     raw_body: str = ""
 
 
@@ -158,7 +158,7 @@ class MetricObject(KnowledgeObject):
 
     formula: Optional[str] = None
     classification: Optional[Classification] = None
-    thresholds: Optional[dict] = None
+    thresholds: dict[str, float] | None = None
     measurement_paradigm: Optional[MeasurementParadigm] = None
     evidence_sources: list[str] = Field(default_factory=list)
 

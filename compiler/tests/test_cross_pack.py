@@ -19,7 +19,7 @@ def _make_obj(
         sections=[],
         relationships=list(relationships or []),
         aliases=list(aliases or []),
-        metadata={},
+        properties={},
     )
 
 

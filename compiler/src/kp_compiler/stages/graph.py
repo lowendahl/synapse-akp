@@ -11,8 +11,14 @@ from __future__ import annotations
 
 import networkx as nx
 
-from kp_compiler.contracts.protocols import Diagnostic, GraphResult, Severity
-from kp_compiler.domain.models import KnowledgeObject, ObjectType
+from kp_compiler.contracts.protocols import (
+    Diagnostic,
+    GraphEdge,
+    GraphNode,
+    GraphResult,
+    Severity,
+)
+from kp_compiler.domain.models import KnowledgeObject
 
 
 def build_graph(objects: list[KnowledgeObject]) -> GraphResult:
@@ -99,28 +105,28 @@ def build_graph(objects: list[KnowledgeObject]) -> GraphResult:
 
     # ── Export ──────────────────────────────────────────────────────────────
 
-    nodes: list[dict] = []
+    nodes: list[GraphNode] = []
     for node_id, data in G.nodes(data=True):
-        nodes.append({
-            "id": node_id,
-            "type": data.get("type", ""),
-            "title": data.get("title", ""),
-            "domain": data.get("domain", ""),
-            "source_path": data.get("source_path", ""),
-            "pagerank": pagerank.get(node_id, 0.0),
-            "in_degree": in_degree.get(node_id, 0),
-            "out_degree": out_degree.get(node_id, 0),
-        })
+        nodes.append(GraphNode(
+            id=node_id,
+            type=data.get("type", ""),
+            title=data.get("title", ""),
+            domain=data.get("domain", ""),
+            source_path=data.get("source_path", ""),
+            pagerank=pagerank.get(node_id, 0.0),
+            in_degree=in_degree.get(node_id, 0),
+            out_degree=out_degree.get(node_id, 0),
+        ))
 
-    edges: list[dict] = []
+    edges: list[GraphEdge] = []
     for u, v, data in G.edges(data=True):
-        edges.append({
-            "subject_id": u,
-            "object_id": v,
-            "predicate": data.get("predicate", "references"),
-            "origin": data.get("origin", "authored"),
-            "confidence": data.get("confidence"),
-        })
+        edges.append(GraphEdge(
+            subject_id=u,
+            object_id=v,
+            predicate=data.get("predicate", "references"),
+            origin=data.get("origin", "authored"),
+            confidence=data.get("confidence"),
+        ))
 
     metrics = {
         "node_count": len(G.nodes),

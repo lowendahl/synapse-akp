@@ -13,7 +13,6 @@ def _make_unit(
         heading_path=heading,
         content=content,
         context=context,
-        depth=1,
     )
 
 

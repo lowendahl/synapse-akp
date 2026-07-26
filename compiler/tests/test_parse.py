@@ -1,4 +1,7 @@
 """Unit tests for the parser stage."""
+import pytest
+
+from kp_compiler.contracts.errors import OntologyViolation
 from kp_compiler.domain.models import ObjectType
 from kp_compiler.stages.parse import (
     determine_object_type,
@@ -53,8 +56,9 @@ class TestDetermineObjectType:
         assert determine_object_type("Pipeline Object") == ObjectType.PIPELINE
         assert determine_object_type("Operating Model") == ObjectType.ORGANIZATION
 
-    def test_unknown_type_falls_back_to_process(self) -> None:
-        assert determine_object_type("SomethingNew") == ObjectType.PROCESS
+    def test_unknown_type_raises_ontology_violation(self) -> None:
+        with pytest.raises(OntologyViolation):
+            determine_object_type("SomethingNew")
 
 
 class TestParseSource:

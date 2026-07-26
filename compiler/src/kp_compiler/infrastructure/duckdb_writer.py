@@ -141,25 +141,25 @@ class DuckDBPackWriter:
             self._con.execute(
                 "INSERT OR REPLACE INTO nodes VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 [
-                    node["id"],
-                    node["type"],
-                    node["title"],
-                    node["domain"],
-                    node["source_path"],
-                    node["pagerank"],
-                    node["in_degree"],
-                    node["out_degree"],
+                    node.id,
+                    node.type,
+                    node.title,
+                    node.domain,
+                    node.source_path,
+                    node.pagerank,
+                    node.in_degree,
+                    node.out_degree,
                 ],
             )
         for edge in result.edges:
             self._con.execute(
                 "INSERT INTO edges VALUES (?, ?, ?, ?, ?)",
                 [
-                    edge["subject_id"],
-                    edge["predicate"],
-                    edge["object_id"],
-                    edge["origin"],
-                    edge["confidence"],
+                    edge.subject_id,
+                    edge.predicate,
+                    edge.object_id,
+                    edge.origin,
+                    edge.confidence,
                 ],
             )
 
