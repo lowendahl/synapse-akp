@@ -214,7 +214,6 @@ class MissingGetOperation:
     pass
 
 
-
 def _imported_roots(py_file: Path) -> set[str]:
     tree = ast.parse(py_file.read_text(encoding="utf-8"))
     modules: set[str] = set()
@@ -316,4 +315,3 @@ def test_runtime_source_has_no_kp_compiler_imports() -> None:
     ]
 
     assert offenders == []
-

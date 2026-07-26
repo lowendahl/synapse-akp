@@ -101,3 +101,22 @@ class ProvenanceNotFound(RuntimeBaseError):
 
     def __str__(self) -> str:
         return f"No provenance found for {self.target_type} '{self.target_id}'"
+
+
+@dataclass
+class RuntimeStateError(RuntimeBaseError):
+    operation: str
+    reason: str
+
+    def __str__(self) -> str:
+        return f"Cannot {self.operation}: {self.reason}"
+
+
+@dataclass
+class PackQueryError(RuntimeBaseError):
+    pack_id: str
+    query_context: str
+    detail: str
+
+    def __str__(self) -> str:
+        return f"[{self.pack_id}] query failed ({self.query_context}): {self.detail}"

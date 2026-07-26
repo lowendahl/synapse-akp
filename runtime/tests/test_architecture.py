@@ -64,9 +64,7 @@ class TestLayerBoundaries:
             imports = _get_full_imports(py_file)
             for imp in imports:
                 parts = imp.replace("akp_runtime.", "").split(".")
-                assert parts[0] not in forbidden, (
-                    f"{py_file.name} imports forbidden layer: {imp}"
-                )
+                assert parts[0] not in forbidden, f"{py_file.name} imports forbidden layer: {imp}"
 
     def test_domain_no_infra_imports(self) -> None:
         domain_dir = RUNTIME_SRC / "domain"
@@ -77,9 +75,7 @@ class TestLayerBoundaries:
             imports = _get_full_imports(py_file)
             for imp in imports:
                 parts = imp.replace("akp_runtime.", "").split(".")
-                assert parts[0] not in forbidden, (
-                    f"{py_file.name} imports forbidden layer: {imp}"
-                )
+                assert parts[0] not in forbidden, f"{py_file.name} imports forbidden layer: {imp}"
 
     def test_operations_no_consumer_imports(self) -> None:
         ops_dir = RUNTIME_SRC / "operations"
@@ -90,9 +86,7 @@ class TestLayerBoundaries:
             imports = _get_full_imports(py_file)
             for imp in imports:
                 parts = imp.replace("akp_runtime.", "").split(".")
-                assert parts[0] not in forbidden, (
-                    f"{py_file.name} imports forbidden layer: {imp}"
-                )
+                assert parts[0] not in forbidden, f"{py_file.name} imports forbidden layer: {imp}"
 
 
 class TestDependencyIsolation:
@@ -103,27 +97,21 @@ class TestDependencyIsolation:
             if py_file.name == "duckdb_loader.py":
                 continue
             imports = _get_imports(py_file)
-            assert "duckdb" not in imports, (
-                f"{py_file.relative_to(RUNTIME_SRC)} must not import duckdb"
-            )
+            assert "duckdb" not in imports, f"{py_file.relative_to(RUNTIME_SRC)} must not import duckdb"
 
     def test_only_usearch_reader_imports_usearch(self) -> None:
         for py_file in RUNTIME_SRC.rglob("*.py"):
             if py_file.name == "usearch_reader.py":
                 continue
             imports = _get_imports(py_file)
-            assert "usearch" not in imports, (
-                f"{py_file.relative_to(RUNTIME_SRC)} must not import usearch"
-            )
+            assert "usearch" not in imports, f"{py_file.relative_to(RUNTIME_SRC)} must not import usearch"
 
     def test_only_fastembed_adapter_imports_fastembed(self) -> None:
         for py_file in RUNTIME_SRC.rglob("*.py"):
             if py_file.name == "fastembed_adapter.py":
                 continue
             imports = _get_imports(py_file)
-            assert "fastembed" not in imports, (
-                f"{py_file.relative_to(RUNTIME_SRC)} must not import fastembed"
-            )
+            assert "fastembed" not in imports, f"{py_file.relative_to(RUNTIME_SRC)} must not import fastembed"
 
 
 class TestVersionConsistency:
@@ -131,6 +119,7 @@ class TestVersionConsistency:
 
     def test_version_matches_pyproject(self) -> None:
         import tomllib
+
         pyproject = Path(__file__).parent.parent / "pyproject.toml"
         if not pyproject.exists():
             return
@@ -138,9 +127,8 @@ class TestVersionConsistency:
             data = tomllib.load(f)
         expected = data["project"]["version"]
         from akp_runtime import __version__
-        assert __version__ == expected, (
-            f"__init__.__version__={__version__} != pyproject.toml version={expected}"
-        )
+
+        assert __version__ == expected, f"__init__.__version__={__version__} != pyproject.toml version={expected}"
 
 
 class TestNoCompilerImports:
@@ -150,6 +138,4 @@ class TestNoCompilerImports:
         for py_file in RUNTIME_SRC.rglob("*.py"):
             imports = _get_full_imports(py_file)
             for imp in imports:
-                assert not imp.startswith("kp_compiler"), (
-                    f"{py_file.relative_to(RUNTIME_SRC)} imports compiler: {imp}"
-                )
+                assert not imp.startswith("kp_compiler"), f"{py_file.relative_to(RUNTIME_SRC)} imports compiler: {imp}"
