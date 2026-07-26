@@ -8,12 +8,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
-class RuntimeErrorBase(Exception):
+class RuntimeBaseError(Exception):
     """Base for all AKP runtime failures."""
 
 
 @dataclass
-class ConfigurationError(RuntimeErrorBase):
+class ConfigurationError(RuntimeBaseError):
     source: str
     violation: str
 
@@ -22,7 +22,7 @@ class ConfigurationError(RuntimeErrorBase):
 
 
 @dataclass
-class PackOpenError(RuntimeErrorBase):
+class PackOpenError(RuntimeBaseError):
     pack_path: Path
     detail: str
 
@@ -31,7 +31,7 @@ class PackOpenError(RuntimeErrorBase):
 
 
 @dataclass
-class UnsupportedSchemaVersion(RuntimeErrorBase):
+class UnsupportedSchemaVersion(RuntimeBaseError):
     pack_path: Path
     found: str
     supported_major: str = "2"
@@ -41,7 +41,7 @@ class UnsupportedSchemaVersion(RuntimeErrorBase):
 
 
 @dataclass
-class MissingPackTable(RuntimeErrorBase):
+class MissingPackTable(RuntimeBaseError):
     pack_path: Path
     table_name: str
 
@@ -50,7 +50,7 @@ class MissingPackTable(RuntimeErrorBase):
 
 
 @dataclass
-class MissingManifestKey(RuntimeErrorBase):
+class MissingManifestKey(RuntimeBaseError):
     pack_path: Path
     key: str
 
@@ -59,7 +59,7 @@ class MissingManifestKey(RuntimeErrorBase):
 
 
 @dataclass
-class DuplicatePackId(RuntimeErrorBase):
+class DuplicatePackId(RuntimeBaseError):
     pack_id: str
     paths: list[Path] = field(default_factory=list)
 
@@ -68,7 +68,7 @@ class DuplicatePackId(RuntimeErrorBase):
 
 
 @dataclass
-class PackNotLoaded(RuntimeErrorBase):
+class PackNotLoaded(RuntimeBaseError):
     pack_id: str
     loaded_pack_ids: list[str] = field(default_factory=list)
 
@@ -77,7 +77,7 @@ class PackNotLoaded(RuntimeErrorBase):
 
 
 @dataclass
-class VectorIndexMissing(RuntimeErrorBase):
+class VectorIndexMissing(RuntimeBaseError):
     pack_id: str
     expected_path: Path
 
@@ -86,7 +86,7 @@ class VectorIndexMissing(RuntimeErrorBase):
 
 
 @dataclass
-class ObjectNotFound(RuntimeErrorBase):
+class ObjectNotFound(RuntimeBaseError):
     identifier: str
     searched_packs: list[str] = field(default_factory=list)
 
@@ -95,7 +95,7 @@ class ObjectNotFound(RuntimeErrorBase):
 
 
 @dataclass
-class ProvenanceNotFound(RuntimeErrorBase):
+class ProvenanceNotFound(RuntimeBaseError):
     target_type: str
     target_id: str
 

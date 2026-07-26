@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from akp_runtime.contracts.mcp_models import PackBindingModel, RuntimeConfigModel
+from akp_runtime.contracts.mcp_models import RuntimeConfigModel
 
 
 class YamlConfigLoader:

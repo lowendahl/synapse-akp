@@ -79,10 +79,12 @@ class GetProvenanceToolInput(BaseModel):
     edge_object_id: str | None = None
 
     @model_validator(mode="after")
-    def validate_target(self) -> "GetProvenanceToolInput":
+    def validate_target(self) -> GetProvenanceToolInput:
         has_object = self.object_id is not None
         has_unit = self.unit_id is not None
-        has_edge = all([self.edge_subject_id, self.edge_predicate, self.edge_object_id])
+        has_edge = all(
+            x is not None for x in [self.edge_subject_id, self.edge_predicate, self.edge_object_id]
+        )
         if sum([has_object, has_unit, has_edge]) != 1:
             raise ValueError("Provide exactly one provenance target: object, unit, or edge")
         return self

@@ -5,7 +5,7 @@ Pure functions — no IO, no side effects, fully testable.
 
 from __future__ import annotations
 
-from akp_runtime.domain.models import ChannelScore, SearchHit
+from akp_runtime.domain.models import SearchHit
 
 
 def rrf_fuse(
