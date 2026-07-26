@@ -48,11 +48,31 @@ When reviewing, you MUST check:
 |---|---|
 | **Dependency direction** | Domain → Application → Infrastructure. Never reversed. |
 | **Module size** | <200 LoC per file. Split or justify. |
+| **No loose functions** | Every module defines at least one class. DDD, not utility bags. |
+| **SQL confinement** | SQL strings ONLY in `queries/` or `persistence/` directories. |
+| **Event separation** | Event types in `contracts/`. Bus engine in `infrastructure/`. Never mixed. |
+| **One concept per file** | Domain files hold a single bounded concept. No model dumps. |
+| **Query object pattern** | Database queries encapsulated in query classes with `execute()`. |
+| **No abbreviations** | Public identifiers use full English words. Code IS documentation. |
 | **Stage isolation** | Pipeline stages must not call each other directly. |
-| **Schema ownership** | Only `duckdb_writer.py` touches DuckDB schema. |
+| **Schema ownership** | Only query/writer classes touch database schema. |
 | **Ontology contract** | Only `ontology.yaml` defines valid types/predicates. |
-| **Explorer self-containment** | No external runtime dependencies. |
 | **Pack immutability** | Compiled packs are never mutated post-write. |
+| **Protocol coverage** | Every infrastructure class implements a protocol from contracts/. |
+
+## Automated Gates
+
+The following gates run as tests and MUST pass before any merge:
+
+- `tests/test_architecture.py` — layer boundaries, dependency confinement
+- `tests/test_design_gates.py` — module size, class presence, SQL confinement,
+  event separation, concept density
+
+When reviewing, ALWAYS run:
+```bash
+pytest tests/test_design_gates.py tests/test_architecture.py -v
+```
+If any gate fails, the code CANNOT be approved.
 
 ## Decision Framework
 

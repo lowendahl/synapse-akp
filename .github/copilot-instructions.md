@@ -45,6 +45,25 @@ dist/              Compiled pack artifacts (git-ignored)
 - **Clean Architecture** — domain logic has no infrastructure dependencies.
 - All modules target **<200 lines of code**; split at natural responsibility boundaries.
 
+## Design Rules (Enforced by Automated Gates)
+
+These are NON-NEGOTIABLE. The gates in `tests/test_design_gates.py` enforce them:
+
+1. **Classes over functions** — every `.py` module defines at least one class.
+   No utility bags of loose functions. Use DDD: bounded contexts, not scripts.
+2. **SQL confinement** — SQL strings ONLY in files within `queries/` or
+   `persistence/` directories. Use the query object pattern.
+3. **One concept per file** — domain files hold ≤4 related classes. No model dumps.
+4. **Event types in contracts** — event dataclasses are the contract between
+   publisher and subscriber. They live in `contracts/events.py`, not in the bus.
+5. **No abbreviations** — public identifiers use full English words.
+   `connection` not `con`, `configuration` not `cfg`, `parameters` not `params`.
+   Code IS the documentation.
+6. **Protocol coverage** — every infrastructure class implements a protocol from
+   `contracts/`. No implicit contracts.
+7. **Query object pattern** — database interactions encapsulated in query classes
+   with an `execute(connection)` method. No ad-hoc SQL in orchestrators.
+
 ## Working with the Compiler
 
 ```bash
