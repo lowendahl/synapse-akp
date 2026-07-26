@@ -1,0 +1,43 @@
+id: kp-csu
+title: "CSU — Customer Success Unit"
+version: "0.2.0"
+status: stable
+domain: csu
+description: >
+  CSU's execution layer: how the Customer Success Unit operationalizes MCEM
+  through priorities, roles, pipeline, processes, programs, and doctrine.
+  Includes KPIs, evidence paths, semantic model mappings, and outcome frameworks.
+
+owner: CSU Knowledge Architecture
+created: "2025-07-20"
+updated: "2025-07-25"
+
+ontology: ../ontology.yaml
+rules: ../pack-rules.yaml
+
+dependencies:
+  - pack_id: kp-mcem
+    path: ../mcem
+    relationship: operationalizes
+
+entry_points:
+  strategic:
+    - priorities/
+    - doctrine/
+  execution:
+    - roles/
+    - metrics/
+    - pipeline/
+    - processes/
+    - programs/
+    - delivery/
+    - planning/
+  evidence:
+    - evidence/
+  outcomes:
+    - outcomes/
+
+compile:
+  output: ../../dist/kp-csu.duckdb
+  pack_id: kp-csu
+  skip_embeddings: false

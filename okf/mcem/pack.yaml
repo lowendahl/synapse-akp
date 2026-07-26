@@ -1,0 +1,41 @@
+id: kp-mcem
+title: "MCEM — Microsoft Customer Engagement Methodology"
+version: "0.2.0"
+status: stable
+domain: mcem
+description: >
+  The end-to-end Microsoft Customer Engagement Methodology: five lifecycle
+  stages, cross-org accountability, pipeline metrics, risk signals,
+  integrated planning, and unified support commerce.
+
+owner: CSU Knowledge Architecture
+created: "2025-07-20"
+updated: "2025-07-25"
+
+ontology: ../ontology.yaml
+rules: ../pack-rules.yaml
+
+dependencies: []
+
+entry_points:
+  methodology:
+    - methodology.md
+    - frontier-transformation.md
+    - discovery-questions.md
+  stages:
+    - stages/
+  organization:
+    - organization/
+  metrics:
+    - metrics/
+  risks:
+    - risks/
+  planning:
+    - planning/
+  unified:
+    - unified/
+
+compile:
+  output: ../../dist/kp-mcem.duckdb
+  pack_id: kp-mcem
+  skip_embeddings: false

@@ -1,0 +1,273 @@
+# Knowledge Pack Ontology — v1.0.0
+# Defines allowed object types, predicates, and constraints.
+# Both kp-mcem and kp-csu compile against this shared ontology.
+
+version: "1.0.0"
+generated: "2026-07-25T03:42:00Z"
+
+# ─────────────────────────────────────────────────────────────
+# Object Types
+# ─────────────────────────────────────────────────────────────
+
+object_types:
+
+  Framework:
+    description: "High-level methodology or operating model"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [mcem, csu]
+
+  Stage:
+    description: "A phase or stage within a framework lifecycle"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status, sequence]
+    domains: [mcem]
+
+  Methodology:
+    description: "A defined approach or method"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [mcem]
+
+  Strategy:
+    description: "Strategic intent or direction"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [csu]
+
+  Organization:
+    description: "An organizational unit or team structure"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [mcem, csu]
+
+  Role:
+    description: "A defined role within the organization"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status, responsibilities]
+    domains: [mcem, csu]
+
+  Process:
+    description: "A defined business or operational process"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status, steps]
+    domains: [mcem, csu]
+
+  Metric:
+    description: "A quantitative measurement or indicator"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status, formula, classification, thresholds, measurement_paradigm]
+    domains: [csu]
+
+  KPI:
+    description: "A key performance indicator with targets and accountability"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status, formula, classification, thresholds, measurement_paradigm]
+    domains: [csu, mcem]
+
+  Doctrine:
+    description: "A principle, policy, or governing belief"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [csu]
+
+  Program:
+    description: "A formal investment or initiative program"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [csu]
+
+  Outcome:
+    description: "A desired result or outcome framework"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [csu]
+
+  Evidence_Source:
+    description: "An operational system providing measurement data"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status, platform, access_pattern]
+    domains: [csu]
+
+  Evidence_Map:
+    description: "A mapping from concept to evidence sources and measures"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [csu]
+
+  Risk:
+    description: "A risk indicator or risk signal pattern"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status, severity]
+    domains: [mcem, csu]
+
+  Priority:
+    description: "A strategic priority or focus area"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status, sequence]
+    domains: [csu]
+
+  Planning:
+    description: "A planning artifact or planning concept"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [mcem, csu]
+
+  Taxonomy:
+    description: "A classification system or hierarchy"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [mcem, csu]
+
+  Pipeline:
+    description: "A pipeline concept, field, or object definition"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [mcem]
+
+  Governance:
+    description: "A governance mechanism or rhythm"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status, cadence]
+    domains: [mcem, csu]
+
+  GTM:
+    description: "Go-to-market concept or operating model component"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [mcem, csu]
+
+  Contract:
+    description: "A contract model or entitlement structure"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [mcem]
+
+  Delivery:
+    description: "A delivery offering, engine, or delivery process"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [csu]
+
+  Measurement:
+    description: "A measurement concept or paradigm"
+    required_fields: [id, title, description]
+    optional_fields: [aliases, tags, status]
+    domains: [csu]
+
+  ADR:
+    description: "Architecture Decision Record"
+    required_fields: [id, title, status, date]
+    optional_fields: [aliases, tags, decision_makers]
+    domains: [csu]
+
+  Index:
+    description: "Directory listing (reserved OKF filename)"
+    required_fields: [title]
+    optional_fields: [description, tags]
+    domains: [mcem, csu]
+
+  Log:
+    description: "Change history (reserved OKF filename)"
+    required_fields: [title]
+    optional_fields: [description, tags]
+    domains: [mcem, csu]
+
+# ─────────────────────────────────────────────────────────────
+# Relationship Predicates
+# ─────────────────────────────────────────────────────────────
+
+predicates:
+
+  references:
+    description: "Generic reference — source mentions target"
+    inverse: referenced_by
+    constraints: {}
+
+  operationalizes:
+    description: "Source is the execution/implementation of target methodology"
+    inverse: operationalized_by
+    constraints:
+      subject_types: [Process, Metric, KPI, Program, Doctrine]
+      object_types: [Framework, Stage, Methodology]
+
+  measures:
+    description: "Source metric/KPI quantifies target concept"
+    inverse: measured_by
+    constraints:
+      subject_types: [Metric, KPI]
+      object_types: [Process, Stage, Outcome, Program]
+
+  belongs_to:
+    description: "Source is part of target (containment)"
+    inverse: contains
+    constraints: {}
+
+  depends_on:
+    description: "Source requires target to function correctly"
+    inverse: depended_on_by
+    constraints: {}
+
+  causes:
+    description: "Source is a direct causal driver of target"
+    inverse: caused_by
+    constraints: {}
+
+  causal_signal:
+    description: "Source is an indirect risk/opportunity signal for target (not direct evidence)"
+    inverse: signaled_by
+    constraints: {}
+
+  evidenced_by:
+    description: "Source concept is measurable via target evidence source"
+    inverse: provides_evidence_for
+    constraints:
+      object_types: [Evidence_Source, Evidence_Map]
+
+  supersedes:
+    description: "Source replaces target (deprecation)"
+    inverse: superseded_by
+    constraints: {}
+
+  extends:
+    description: "Source builds upon or enriches target"
+    inverse: extended_by
+    constraints: {}
+
+  informs:
+    description: "Source provides input/context to target"
+    inverse: informed_by
+    constraints: {}
+
+  gates:
+    description: "Source must be satisfied before target can proceed"
+    inverse: gated_by
+    constraints: {}
+
+  funds:
+    description: "Source provides financial investment for target"
+    inverse: funded_by
+    constraints:
+      subject_types: [Program]
+
+# ─────────────────────────────────────────────────────────────
+# Constraints
+# ─────────────────────────────────────────────────────────────
+
+constraints:
+
+  id_format:
+    pattern: "^(mcem|csu)\\.[a-z_]+\\.[a-z0-9-]+$"
+    description: "IDs must be domain.category.slug in lowercase kebab"
+
+  unique_ids:
+    scope: "global"
+    description: "No two objects may share the same ID across both packs"
+
+  no_circular_depends_on:
+    predicate: "depends_on"
+    description: "depends_on relationships must form a DAG (no cycles)"
+
+  cross_pack_direction:
+    description: "Only csu.* may reference mcem.* (not vice versa)"
+    rule: "If subject starts with 'mcem.' then object must also start with 'mcem.'"

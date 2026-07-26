@@ -1,0 +1,137 @@
+# Pack Rules — Declarative Quality Gates for the Knowledge Pack Compiler
+#
+# This file controls alias quality filtering and post-compilation outcome
+# assertions.  Edit the values below to tune precision for your corpus.
+# No code changes are needed — the compiler loads this file automatically.
+#
+# Docs: okf/guides/knowledge-pack-author-guide.md
+# ADR:  okf/adr/adr-014-pack-rules-engine.md
+
+version: "1.0"
+
+# ── Alias Quality Gate (applied during enrichment) ─────────────────────────
+alias_rules:
+
+  # Aliases matching these words are silently dropped.
+  # These are common English words that degrade search precision when they
+  # appear as tags or acronym expansions.
+  stopwords:
+    - this
+    - the
+    - a
+    - an
+    - it
+    - is
+    - are
+    - was
+    - were
+    - that
+    - with
+    - for
+    - from
+    - into
+    - also
+    - but
+    - not
+    - can
+    - will
+    - has
+    - had
+    - have
+    - been
+    - does
+    - do
+    - each
+    - every
+    - all
+    - any
+    - some
+    - more
+    - most
+    - much
+    - such
+    - than
+    - then
+    - when
+    - how
+    - what
+    - which
+    - who
+    - its
+    - our
+    - you
+    - your
+    - they
+    - them
+    - we
+    - us
+    - be
+    - by
+    - on
+    - at
+    - to
+    - in
+    - of
+    - or
+    - no
+    - so
+    - if
+    - up
+    - out
+    - off
+    - own
+    - too
+    - very
+    - just
+
+  # Aliases shorter than this character count are rejected.
+  min_length: 2
+
+  # A tag alias applied to more than this many objects triggers a WARNING.
+  max_tag_fanout: 15
+
+  # An explicit alias on more than this many objects triggers a WARNING.
+  max_explicit_fanout: 8
+
+  # Regex patterns — any alias matching one of these is rejected.
+  blocked_patterns:
+    - "^\\d+$"       # pure numbers like "123"
+    - "^[a-z]$"      # single lowercase letters
+
+# ── Outcome Assertions (run after compilation) ─────────────────────────────
+outcome_assertions:
+
+  - name: explicit-alias-precision
+    description: >
+      Searching an explicit alias returns its owning object in the top-K
+      alias results.  Catches aliases that are too generic to be useful.
+    rule: alias_owner_in_top_k
+    params:
+      k: 5
+      sample: 20      # test 20 randomly sampled explicit aliases
+
+  - name: tag-fanout-limit
+    description: >
+      No single tag aliases more than 50% of all objects.  Catches
+      over-broad tags that appear on nearly every object.
+    rule: max_tag_coverage
+    params:
+      threshold: 0.5
+
+  - name: bm25-self-retrieval
+    description: >
+      Searching an object's title via BM25 returns that object in the
+      top-K results.  Validates that the lexical index is functional.
+    rule: title_self_retrieval
+    params:
+      k: 5
+      sample: 30       # test 30 randomly sampled objects
+
+# ── Quality Thresholds ─────────────────────────────────────────────────────
+quality_thresholds:
+
+  # Minimum fraction of assertions that must pass (0.0–1.0).
+  min_assertion_pass_rate: 0.6
+
+  # If true, the build fails when the pass rate is below the threshold.
+  fail_on_error: true

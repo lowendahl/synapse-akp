@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OKF Knowledge Pack Explorer</title>
+<script>
+  (function() {
+    var param = new URLSearchParams(window.location.search).get("scoutTheme");
+    var theme = param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+<!-- __CSS_PLACEHOLDER__ -->
+</head>
+<body>
+
+<div id="header">
+  <h1>&#x1F4E6; OKF Pack Explorer</h1>
+  <div id="pack-toggles"></div>
+  <div id="xpack-toggle-wrap">
+    <label class="toggle-switch">
+      <input type="checkbox" id="xpack-toggle" />
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">Cross-pack</span>
+  </div>
+  <input type="text" id="search-box" placeholder="Search nodes... (press /)" />
+  <div class="stats">
+    <span class="stat-badge" id="stat-nodes">0 nodes</span>
+    <span class="stat-badge" id="stat-edges">0 edges</span>
+    <span class="stat-badge" id="stat-packs">0 packs</span>
+  </div>
+</div>
+
+<div id="graph-container"></div>
+<div id="legend"></div>
+
+<div id="tooltip">
+  <div class="tt-title"></div>
+  <div class="tt-type"></div>
+</div>
+
+<div id="drawer-overlay"></div>
+<div id="drawer">
+  <div id="drawer-header">
+    <button id="drawer-close">&#x2715;</button>
+    <div id="drawer-title"></div>
+    <div id="drawer-meta"></div>
+  </div>
+  <div id="drawer-body"></div>
+</div>
+
+<!-- __VENDOR_PLACEHOLDER__ -->
+<script>
+var GRAPH_DATA = __GRAPH_DATA_PLACEHOLDER__;
+</script>
+<!-- __APP_JS_PLACEHOLDER__ -->
+
+</body>
+</html>
