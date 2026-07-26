@@ -1,15 +1,8 @@
-"""Design quality gates — automated enforcement of code architecture standards.
+"""Design quality gates.
 
-These gates BLOCK merge when violated. They enforce:
-- Gate 1: Module size (max 200 LoC of logic)
-- Gate 2: No loose-function modules (classes required)
-- Gate 3: SQL confinement (only in query/persistence files)
-- Gate 4: No abbreviations in public identifiers
-- Gate 5: Event contract separation (events in contracts, bus in infra)
-- Gate 6: One concept per domain file (no model dumps)
-- Gate 7: Code is documentation (naming clarity)
-
-See docs/architecture/decisions/gates/README.md for full rationale.
+Automated enforcement of architecture standards that block merge on violation.
+Configuration: docs/architecture/decisions/gates/gate-config.yaml
+Rationale: docs/architecture/decisions/gates/README.md
 """
 
 from __future__ import annotations
@@ -19,59 +12,52 @@ import re
 from pathlib import Path
 
 import pytest
-
-# ─── Configuration ───────────────────────────────────────────────────────────
+import yaml
 
 RUNTIME_SRC = Path(__file__).parent.parent / "src" / "akp_runtime"
+_GATE_CONFIG_PATH = (
+    Path(__file__).parent.parent.parent / "docs" / "architecture" / "decisions" / "gates" / "gate-config.yaml"
+)
 
-# Files excluded from design gates
-EXCLUDED_NAMES = {"__init__.py", "__main__.py", "conftest.py"}
+with _GATE_CONFIG_PATH.open(encoding="utf-8") as _f:
+    _CONFIG = yaml.safe_load(_f)
 
-# Directories that contain SQL legitimately
-SQL_ALLOWED_DIRS = {"queries", "persistence", "writer", "migration"}
-SQL_ALLOWED_FILE_PATTERNS = {"query", "writer", "migration", "schema"}
+MAX_LOGIC_LINES: int = _CONFIG["max_logic_lines"]
+ACCEPTED_ACRONYMS = frozenset(_CONFIG["accepted_acronyms"])
+ACCEPTED_SHORT_WORDS = frozenset(_CONFIG["accepted_short_words"])
+SQL_ALLOWED_DIRS = set(_CONFIG["sql_allowed_directories"])
+SQL_ALLOWED_FILE_PATTERNS = set(_CONFIG["sql_allowed_file_patterns"])
+EXCLUDED_FILENAMES = {"__init__.py", "__main__.py", "conftest.py"}
 
-# Accepted acronyms that are not "abbreviations"
-ACCEPTED_ACRONYMS = frozenset({
-    "rrf", "bm25", "mcp", "ddd", "bfs", "sql", "id", "url", "api",
-    "abc", "duckdb", "yaml", "json", "utf", "io", "os", "db",
-    "uuid", "http", "tcp", "ip", "sdk", "cli", "env", "config",
-})
-
-# Known short words that are fine
-ACCEPTED_SHORT_WORDS = frozenset({
-    "bus", "hit", "key", "map", "raw", "run", "log", "top", "get",
-    "set", "add", "all", "new", "old", "max", "min", "sum", "avg",
-    "for", "the", "and", "not", "has", "is", "of", "on", "at",
-})
-
-MAX_LOGIC_LINES = 200
+_SQL_KEYWORD_PATTERN = re.compile(
+    r"\b(SELECT|INSERT|CREATE\s+TABLE|ALTER\s+TABLE|DROP\s+TABLE|UPDATE|DELETE\s+FROM)\b",
+    re.IGNORECASE,
+)
 
 
-# ─── Helpers ─────────────────────────────────────────────────────────────────
+def _source_files() -> list[Path]:
+    if not RUNTIME_SRC.exists():
+        return []
+    return [f for f in RUNTIME_SRC.rglob("*.py") if f.name not in EXCLUDED_FILENAMES]
 
 
 def _count_logic_lines(filepath: Path) -> int:
-    """Count non-blank, non-comment, non-docstring executable lines."""
     try:
         source = filepath.read_text(encoding="utf-8")
         ast.parse(source)
     except (SyntaxError, UnicodeDecodeError):
         return 0
 
-    lines = source.splitlines()
     logic_lines = 0
     in_docstring = False
 
-    for line in lines:
+    for line in source.splitlines():
         stripped = line.strip()
-        if not stripped:
-            continue
-        if stripped.startswith("#"):
+        if not stripped or stripped.startswith("#"):
             continue
         if stripped.startswith('"""') or stripped.startswith("'''"):
             if stripped.count('"""') == 2 or stripped.count("'''") == 2:
-                continue  # single-line docstring
+                continue
             in_docstring = not in_docstring
             continue
         if in_docstring:
@@ -82,22 +68,18 @@ def _count_logic_lines(filepath: Path) -> int:
 
 
 def _has_class_definition(filepath: Path) -> bool:
-    """Check if file defines at least one class."""
     try:
         tree = ast.parse(filepath.read_text(encoding="utf-8"))
     except (SyntaxError, UnicodeDecodeError):
         return False
-
     return any(isinstance(node, ast.ClassDef) for node in ast.walk(tree))
 
 
 def _is_reexport_facade(filepath: Path) -> bool:
-    """Check if file is a pure re-export facade (only imports and assignments)."""
     try:
         tree = ast.parse(filepath.read_text(encoding="utf-8"))
     except (SyntaxError, UnicodeDecodeError):
         return False
-
     for node in ast.iter_child_nodes(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom, ast.Assign, ast.Expr)):
             continue
@@ -107,145 +89,89 @@ def _is_reexport_facade(filepath: Path) -> bool:
 
 
 def _find_sql_strings(filepath: Path) -> list[tuple[int, str]]:
-    """Find string literals containing SQL keywords."""
-    sql_pattern = re.compile(
-        r"\b(SELECT|INSERT|CREATE\s+TABLE|ALTER\s+TABLE|DROP\s+TABLE|UPDATE|DELETE\s+FROM)\b",
-        re.IGNORECASE,
-    )
-    violations = []
     try:
         tree = ast.parse(filepath.read_text(encoding="utf-8"))
     except (SyntaxError, UnicodeDecodeError):
         return []
 
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Constant) and isinstance(node.value, str) and sql_pattern.search(node.value):
-            violations.append((node.lineno, node.value[:80]))
-
-    return violations
+    return [
+        (node.lineno, node.value[:80])
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and _SQL_KEYWORD_PATTERN.search(node.value)
+    ]
 
 
 def _is_sql_allowed_location(filepath: Path) -> bool:
-    """Check if file is in a directory where SQL is allowed."""
-    parts = set(filepath.parts)
-    if parts & SQL_ALLOWED_DIRS:
+    if set(filepath.parts) & SQL_ALLOWED_DIRS:
         return True
-    stem = filepath.stem.lower()
-    return any(pattern in stem for pattern in SQL_ALLOWED_FILE_PATTERNS)
-
-
-def _get_public_identifiers(filepath: Path) -> list[tuple[int, str]]:
-    """Extract public (non-underscore-prefixed) class/function/variable names."""
-    try:
-        tree = ast.parse(filepath.read_text(encoding="utf-8"))
-    except (SyntaxError, UnicodeDecodeError):
-        return []
-
-    identifiers = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and not node.name.startswith("_"):
-            identifiers.append((node.lineno, node.name))
-    return identifiers
+    return any(pattern in filepath.stem.lower() for pattern in SQL_ALLOWED_FILE_PATTERNS)
 
 
 def _is_abbreviation(word: str) -> bool:
-    """Check if a word looks like an abbreviation (too short and not a known word)."""
     lower = word.lower()
     if lower in ACCEPTED_ACRONYMS or lower in ACCEPTED_SHORT_WORDS:
         return False
     return len(word) <= 2
 
 
-def _source_files() -> list[Path]:
-    """Get all Python source files (excluding tests and excluded names)."""
-    if not RUNTIME_SRC.exists():
-        return []
-    return [
-        f for f in RUNTIME_SRC.rglob("*.py")
-        if f.name not in EXCLUDED_NAMES
-    ]
-
-
-# ─── Gate 1: Module Size ────────────────────────────────────────────────────
-
-
 class TestModuleSize:
-    """Gate 1: No module exceeds 200 lines of logic."""
+    """No module exceeds the configured logic-line ceiling."""
 
-    def test_no_file_exceeds_max_logic_lines(self) -> None:
-        violations = []
-        for filepath in _source_files():
-            count = _count_logic_lines(filepath)
-            if count > MAX_LOGIC_LINES:
-                rel = filepath.relative_to(RUNTIME_SRC)
-                violations.append(f"  {rel}: {count} lines (max {MAX_LOGIC_LINES})")
-
+    def test_all_files_within_limit(self) -> None:
+        violations = [
+            f"  {filepath.relative_to(RUNTIME_SRC)}: {count} lines (max {MAX_LOGIC_LINES})"
+            for filepath in _source_files()
+            if (count := _count_logic_lines(filepath)) > MAX_LOGIC_LINES
+        ]
         if violations:
-            msg = f"Gate 1 VIOLATION — files exceed {MAX_LOGIC_LINES} LoC:\n" + "\n".join(violations)
-            pytest.fail(msg)
-
-
-# ─── Gate 2: No Loose-Function Modules ──────────────────────────────────────
+            pytest.fail("Gate 1 VIOLATION:\n" + "\n".join(violations))
 
 
 class TestNoLooseFunctions:
-    """Gate 2: Every source module defines at least one class."""
+    """Every source module defines at least one class."""
 
     def test_all_modules_have_classes(self) -> None:
         violations = []
         for filepath in _source_files():
-            # Skip type-only files and empty files
             if _count_logic_lines(filepath) < 5:
                 continue
-            # Re-export facades (only imports + assignments) are fine
             if _is_reexport_facade(filepath):
                 continue
             if not _has_class_definition(filepath):
-                rel = filepath.relative_to(RUNTIME_SRC)
-                violations.append(f"  {rel}: no class definition (loose functions)")
+                violations.append(f"  {filepath.relative_to(RUNTIME_SRC)}")
 
         if violations:
-            msg = "Gate 2 VIOLATION — modules without class definitions:\n" + "\n".join(violations)
-            pytest.fail(msg)
-
-
-# ─── Gate 3: SQL Confinement ────────────────────────────────────────────────
+            pytest.fail("Gate 2 VIOLATION — modules without classes:\n" + "\n".join(violations))
 
 
 class TestSqlConfinement:
-    """Gate 3: SQL strings only in query/persistence files."""
+    """SQL strings exist only inside query/persistence directories."""
 
     def test_sql_only_in_allowed_locations(self) -> None:
         violations = []
         for filepath in _source_files():
             if _is_sql_allowed_location(filepath):
                 continue
-            sql_hits = _find_sql_strings(filepath)
-            if sql_hits:
-                rel = filepath.relative_to(RUNTIME_SRC)
-                for lineno, snippet in sql_hits:
-                    violations.append(f"  {rel}:{lineno}: {snippet}...")
+            for lineno, snippet in _find_sql_strings(filepath):
+                violations.append(f"  {filepath.relative_to(RUNTIME_SRC)}:{lineno}: {snippet}...")
 
         if violations:
-            msg = "Gate 3 VIOLATION — SQL outside query/persistence files:\n" + "\n".join(violations)
-            pytest.fail(msg)
-
-
-# ─── Gate 5: Event Contract Separation ──────────────────────────────────────
+            pytest.fail("Gate 3 VIOLATION:\n" + "\n".join(violations))
 
 
 class TestEventSeparation:
-    """Gate 5: Event types in contracts/, bus implementation separate."""
+    """Event dataclasses live in contracts/; the bus engine has no event definitions."""
 
     def test_no_event_definitions_in_bus_implementation(self) -> None:
-        """Bus implementation files should not define event dataclasses."""
         events_dir = RUNTIME_SRC / "events"
         if not events_dir.exists():
             return
 
         violations = []
         for filepath in events_dir.rglob("*.py"):
-            if filepath.name in EXCLUDED_NAMES:
+            if filepath.name in EXCLUDED_FILENAMES:
                 continue
             try:
                 tree = ast.parse(filepath.read_text(encoding="utf-8"))
@@ -253,33 +179,27 @@ class TestEventSeparation:
                 continue
 
             for node in ast.walk(tree):
-                if isinstance(node, ast.ClassDef):
-                    # Check if it's a dataclass (has @dataclass decorator)
-                    for decorator in node.decorator_list:
-                        dec_name = ""
-                        if isinstance(decorator, ast.Name):
-                            dec_name = decorator.id
-                        elif isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name):
-                            dec_name = decorator.func.id
-                        if dec_name == "dataclass":
-                            rel = filepath.relative_to(RUNTIME_SRC)
-                            violations.append(
-                                f"  {rel}: event class '{node.name}' defined in bus "
-                                f"implementation (should be in contracts/)"
-                            )
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                for decorator in node.decorator_list:
+                    decorator_name = ""
+                    if isinstance(decorator, ast.Name):
+                        decorator_name = decorator.id
+                    elif isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name):
+                        decorator_name = decorator.func.id
+                    if decorator_name == "dataclass":
+                        violations.append(
+                            f"  {filepath.relative_to(RUNTIME_SRC)}: '{node.name}' belongs in contracts/"
+                        )
 
         if violations:
-            msg = "Gate 5 VIOLATION — event definitions mixed with bus:\n" + "\n".join(violations)
-            pytest.fail(msg)
-
-
-# ─── Gate 6: One Concept Per Domain File ────────────────────────────────────
+            pytest.fail("Gate 5 VIOLATION:\n" + "\n".join(violations))
 
 
 class TestDomainFileConcentration:
-    """Gate 6: Domain files contain models for a single concept."""
+    """Domain files hold at most 4 classes to prevent model dumps."""
 
-    MAX_DATACLASSES_PER_FILE = 4  # Allow related types (e.g., Hit + ChannelScore)
+    MAX_CLASSES_PER_FILE = 4
 
     def test_no_model_dump_files(self) -> None:
         domain_dir = RUNTIME_SRC / "domain"
@@ -288,24 +208,18 @@ class TestDomainFileConcentration:
 
         violations = []
         for filepath in domain_dir.rglob("*.py"):
-            if filepath.name in EXCLUDED_NAMES:
+            if filepath.name in EXCLUDED_FILENAMES:
                 continue
             try:
                 tree = ast.parse(filepath.read_text(encoding="utf-8"))
             except (SyntaxError, UnicodeDecodeError):
                 continue
 
-            class_count = sum(
-                1 for node in ast.walk(tree)
-                if isinstance(node, ast.ClassDef)
-            )
-            if class_count > self.MAX_DATACLASSES_PER_FILE:
-                rel = filepath.relative_to(RUNTIME_SRC)
+            class_count = sum(1 for node in ast.walk(tree) if isinstance(node, ast.ClassDef))
+            if class_count > self.MAX_CLASSES_PER_FILE:
                 violations.append(
-                    f"  {rel}: {class_count} classes (max {self.MAX_DATACLASSES_PER_FILE}) "
-                    f"— split into per-concept files"
+                    f"  {filepath.relative_to(RUNTIME_SRC)}: {class_count} classes (max {self.MAX_CLASSES_PER_FILE})"
                 )
 
         if violations:
-            msg = "Gate 6 VIOLATION — too many concepts in single file:\n" + "\n".join(violations)
-            pytest.fail(msg)
+            pytest.fail("Gate 6 VIOLATION:\n" + "\n".join(violations))

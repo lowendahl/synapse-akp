@@ -1,0 +1,81 @@
+# Design Gate Configuration
+# Canonical source for gate thresholds and vocabulary.
+# Tests read from this file — do NOT hardcode values in test code.
+
+max_logic_lines: 200
+
+# Accepted acronyms that are NOT abbreviation violations.
+# These are domain-standard terms where the acronym IS the name.
+accepted_acronyms:
+  - rrf       # Reciprocal Rank Fusion
+  - bm25      # Best Matching 25 (IR algorithm)
+  - mcp       # Model Context Protocol
+  - ddd       # Domain-Driven Design
+  - bfs       # Breadth-First Search
+  - sql       # Structured Query Language
+  - id        # Identifier (universally understood)
+  - url       # Uniform Resource Locator
+  - api       # Application Programming Interface
+  - abc       # Abstract Base Class (Python)
+  - duckdb    # DuckDB (product name)
+  - yaml      # YAML Ain't Markup Language
+  - json      # JavaScript Object Notation
+  - utf       # Unicode Transformation Format
+  - io        # Input/Output
+  - os        # Operating System
+  - db        # Database
+  - uuid      # Universally Unique Identifier
+  - http      # HyperText Transfer Protocol
+  - tcp       # Transmission Control Protocol
+  - ip        # Internet Protocol
+  - sdk       # Software Development Kit
+  - cli       # Command Line Interface
+  - env       # Environment (variable context)
+  - config    # Configuration (borderline but universally accepted)
+  - okf       # Open Knowledge Format
+  - akp       # Agentic Knowledge Pack
+  - air       # Agentic Intelligence Runtime
+
+# Short English words that are valid identifiers (not abbreviations).
+accepted_short_words:
+  - bus
+  - hit
+  - key
+  - map
+  - raw
+  - run
+  - log
+  - top
+  - get
+  - set
+  - add
+  - all
+  - new
+  - old
+  - max
+  - min
+  - sum
+  - avg
+  - for
+  - the
+  - and
+  - not
+  - has
+  - is
+  - of
+  - on
+  - at
+
+# Directories where SQL strings are allowed
+sql_allowed_directories:
+  - queries
+  - persistence
+  - writer
+  - migration
+
+# File name patterns where SQL strings are allowed
+sql_allowed_file_patterns:
+  - query
+  - writer
+  - migration
+  - schema
