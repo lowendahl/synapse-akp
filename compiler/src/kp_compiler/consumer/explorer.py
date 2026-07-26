@@ -108,13 +108,13 @@ def build_graph_json(pack_paths: list[Path]) -> str:
         all_links.extend(data["edges"])
         all_links.extend(data["cross_refs"])
 
-    # Filter orphan links and deduplicate cross-pack refs
-    seen: set[tuple[str, str]] = set()
+    # Filter orphan links and deduplicate — preserve distinct predicates
+    seen: set[tuple[str, str, str]] = set()
     valid: list[dict] = []
     for l in all_links:
         if l["source"] not in node_ids or l["target"] not in node_ids:
             continue
-        key = (l["source"], l["target"])
+        key = (l["source"], l["target"], l.get("predicate", "references"))
         if key in seen:
             continue
         seen.add(key)

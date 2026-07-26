@@ -10,7 +10,7 @@ Test strategy: Unit tests with in-memory DuckDB packs and crafted rules.
 
 from __future__ import annotations
 
-import random
+import random as _random
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -64,7 +64,7 @@ def _assert_alias_owner_in_top_k(
 
     # Sample
     if len(rows) > sample_size:
-        rows = random.sample(rows, sample_size)
+        rows = _random.Random(42).sample(rows, sample_size)
 
     failures: list[str] = []
     for alias_text, owner_id in rows:
@@ -142,7 +142,7 @@ def _assert_title_self_retrieval(
         )
 
     if len(rows) > sample_size:
-        rows = random.sample(rows, sample_size)
+        rows = _random.Random(42).sample(rows, sample_size)
 
     failures: list[str] = []
     for obj_id, title in rows:
