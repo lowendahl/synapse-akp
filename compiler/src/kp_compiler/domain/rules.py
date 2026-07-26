@@ -1,25 +1,18 @@
-"""Pack Rules — Pydantic v2 domain models for the declarative rules engine.
+"""Pack Rules — declarative quality configuration for the compiler.
 
-What: Typed hierarchy for pack-rules.yaml — alias quality gates, outcome
-      assertions, and quality thresholds.
-Why: Pack authors configure compiler quality constraints via YAML, not code.
-     Pydantic validates and deserializes the config with full type safety (ADR-014).
-Contracts: Loaded once by the orchestrator, passed as a dependency to enrichment
-           and outcome-validation stages.
+What: AliasRules, QualityThresholds, PackRules — the root config model.
+Why: Pack authors configure compiler quality constraints via YAML, not code (ADR-014).
+Contracts: Loaded once by the orchestrator, passed as a dependency to stages.
 Boundaries: Pure domain models — must NOT import infrastructure or perform IO.
-Test strategy: Unit tests validate parsing, defaults, and constraint semantics.
 """
 
 from __future__ import annotations
 
 import re
-from enum import Enum
-from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-
-# ── Alias Rules ─────────────────────────────────────────────────────────────
+from kp_compiler.domain.assertions import AssertionKind, OutcomeAssertion
 
 
 class AliasRules(BaseModel):
@@ -63,18 +56,12 @@ class AliasRules(BaseModel):
     @field_validator("blocked_patterns", mode="after")
     @classmethod
     def _compile_patterns(cls, v: list[str]) -> list[str]:
-        """Validate that every pattern compiles."""
         for p in v:
             re.compile(p)
         return v
 
-    # ── Gate logic ──────────────────────────────────────────────────────────
-
     def is_blocked(self, alias: str) -> tuple[bool, str]:
-        """Check if an alias should be rejected.
-
-        Returns (blocked, reason).
-        """
+        """Check if an alias should be rejected. Returns (blocked, reason)."""
         normed = alias.strip().lower()
 
         if len(normed) < self.min_length:
@@ -88,44 +75,6 @@ class AliasRules(BaseModel):
                 return True, f"blocked pattern '{pattern}'"
 
         return False, ""
-
-
-# ── Outcome Assertions ─────────────────────────────────────────────────────
-
-
-class AssertionKind(str, Enum):
-    """Built-in assertion function identifiers."""
-
-    ALIAS_OWNER_IN_TOP_K = "alias_owner_in_top_k"
-    MAX_TAG_COVERAGE = "max_tag_coverage"
-    TITLE_SELF_RETRIEVAL = "title_self_retrieval"
-    NO_ORPHAN_ALIASES = "no_orphan_aliases"
-
-
-class OutcomeAssertion(BaseModel):
-    """A single declarative outcome assertion."""
-
-    model_config = ConfigDict(frozen=True)
-
-    name: str = Field(
-        ...,
-        description="Human-readable assertion name (used in reports).",
-    )
-    rule: AssertionKind = Field(
-        ...,
-        description="Built-in assertion function to execute.",
-    )
-    params: dict[str, Any] = Field(
-        default_factory=dict,
-        description="Parameters forwarded to the assertion function.",
-    )
-    description: str = Field(
-        default="",
-        description="Optional human-readable description of what this checks.",
-    )
-
-
-# ── Quality Thresholds ─────────────────────────────────────────────────────
 
 
 class QualityThresholds(BaseModel):
@@ -145,22 +94,13 @@ class QualityThresholds(BaseModel):
     )
 
 
-# ── Top-Level Pack Rules ───────────────────────────────────────────────────
-
-
 class PackRules(BaseModel):
     """Root model for pack-rules.yaml — the compiler's declarative config."""
 
     model_config = ConfigDict(frozen=True)
 
-    version: str = Field(
-        default="1.0",
-        description="Rules schema version.",
-    )
-    alias_rules: AliasRules = Field(
-        default_factory=AliasRules,
-        description="Compile-time alias quality gate configuration.",
-    )
+    version: str = Field(default="1.0", description="Rules schema version.")
+    alias_rules: AliasRules = Field(default_factory=AliasRules)
     outcome_assertions: list[OutcomeAssertion] = Field(
         default_factory=lambda: [
             OutcomeAssertion(
@@ -182,14 +122,8 @@ class PackRules(BaseModel):
                 description="Object title as query returns itself in BM25 top-5.",
             ),
         ],
-        description="Post-compilation outcome assertions.",
     )
-    quality_thresholds: QualityThresholds = Field(
-        default_factory=QualityThresholds,
-        description="Build-level pass/fail thresholds.",
-    )
-
-    # ── Factory ─────────────────────────────────────────────────────────────
+    quality_thresholds: QualityThresholds = Field(default_factory=QualityThresholds)
 
     @classmethod
     def default(cls) -> PackRules:
