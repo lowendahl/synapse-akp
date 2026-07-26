@@ -39,6 +39,17 @@ status: stable
 | [ADR-024](./adr-024-inferred-vs-authored.md) | Inferred Knowledge SHALL Be Distinguishable from Authored Knowledge | 2026-07-26 |
 | [ADR-025](./adr-025-pack-format-specification.md) | Pack Format Specification (Schema 2.0.0) | 2026-07-26 |
 | [ADR-026](./adr-026-mcp-stdio-transport.md) | MCP stdio Transport for Runtime | 2026-07-26 |
+| [ADR-027](./adr-027-acronym-discovery.md) | Acronym Discovery Pipeline | 2026-07-26 |
+| [ADR-028](./adr-028-domain-agnostic-framework.md) | Domain-Agnostic Framework Design | 2026-07-26 |
+| [ADR-029](./adr-029-llm-protocol-copilot-provider.md) | LLM Protocol & Copilot Provider | 2026-07-26 |
+| [ADR-030](./adr-030-unified-semantic-pipeline.md) | Unified Semantic Compilation Pipeline | 2026-07-26 |
+| [ADR-031](./adr-031-semantic-taxonomy-classification.md) | Semantic Taxonomy Classification | 2026-07-26 |
+| [ADR-032](./adr-032-assertion-level-confidence.md) | Assertion-Level Confidence Scoring | 2026-07-26 |
+| [ADR-033](./adr-033-measure-indicator-kpi-chain.md) | Measure → Indicator → KPI Chain | 2026-07-26 |
+| [ADR-034](./adr-034-formula-extraction-dependency-graphs.md) | Formula Extraction & Dependency Graphs | 2026-07-26 |
+| [ADR-035](./adr-035-generated-source-layers.md) | Generated vs Authored Source Layers | 2026-07-26 |
+| [ADR-036](./adr-036-semantic-reasoning-protocol.md) | Semantic Reasoning Protocol | 2026-07-26 |
+| [ADR-037](./adr-037-semantic-duckdb-schema.md) | Semantic DuckDB Schema Extension | 2026-07-26 |
 
 ## Open
 
