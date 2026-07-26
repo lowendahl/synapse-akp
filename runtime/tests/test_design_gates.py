@@ -55,7 +55,7 @@ def _count_logic_lines(filepath: Path) -> int:
     """Count non-blank, non-comment, non-docstring executable lines."""
     try:
         source = filepath.read_text(encoding="utf-8")
-        tree = ast.parse(source)
+        ast.parse(source)
     except (SyntaxError, UnicodeDecodeError):
         return 0
 
@@ -91,6 +91,21 @@ def _has_class_definition(filepath: Path) -> bool:
     return any(isinstance(node, ast.ClassDef) for node in ast.walk(tree))
 
 
+def _is_reexport_facade(filepath: Path) -> bool:
+    """Check if file is a pure re-export facade (only imports and assignments)."""
+    try:
+        tree = ast.parse(filepath.read_text(encoding="utf-8"))
+    except (SyntaxError, UnicodeDecodeError):
+        return False
+
+    for node in ast.iter_child_nodes(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom, ast.Assign, ast.Expr)):
+            continue
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            return False
+    return True
+
+
 def _find_sql_strings(filepath: Path) -> list[tuple[int, str]]:
     """Find string literals containing SQL keywords."""
     sql_pattern = re.compile(
@@ -104,9 +119,8 @@ def _find_sql_strings(filepath: Path) -> list[tuple[int, str]]:
         return []
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.Constant) and isinstance(node.value, str):
-            if sql_pattern.search(node.value):
-                violations.append((node.lineno, node.value[:80]))
+        if isinstance(node, ast.Constant) and isinstance(node.value, str) and sql_pattern.search(node.value):
+            violations.append((node.lineno, node.value[:80]))
 
     return violations
 
@@ -129,11 +143,7 @@ def _get_public_identifiers(filepath: Path) -> list[tuple[int, str]]:
 
     identifiers = []
     for node in ast.walk(tree):
-        if isinstance(node, ast.ClassDef) and not node.name.startswith("_"):
-            identifiers.append((node.lineno, node.name))
-        elif isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
-            identifiers.append((node.lineno, node.name))
-        elif isinstance(node, ast.AsyncFunctionDef) and not node.name.startswith("_"):
+        if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and not node.name.startswith("_"):
             identifiers.append((node.lineno, node.name))
     return identifiers
 
@@ -143,10 +153,7 @@ def _is_abbreviation(word: str) -> bool:
     lower = word.lower()
     if lower in ACCEPTED_ACRONYMS or lower in ACCEPTED_SHORT_WORDS:
         return False
-    # Single/double char that isn't a known word
-    if len(word) <= 2:
-        return True
-    return False
+    return len(word) <= 2
 
 
 def _source_files() -> list[Path]:
@@ -189,6 +196,9 @@ class TestNoLooseFunctions:
         for filepath in _source_files():
             # Skip type-only files and empty files
             if _count_logic_lines(filepath) < 5:
+                continue
+            # Re-export facades (only imports + assignments) are fine
+            if _is_reexport_facade(filepath):
                 continue
             if not _has_class_definition(filepath):
                 rel = filepath.relative_to(RUNTIME_SRC)

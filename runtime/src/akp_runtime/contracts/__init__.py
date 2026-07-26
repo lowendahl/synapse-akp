@@ -1,1 +1,1 @@
-"""Contract definitions — Pydantic models, protocols, and typed errors."""
+"""Contract definitions — protocols, events, typed errors, and MCP models."""

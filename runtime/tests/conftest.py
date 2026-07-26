@@ -2,7 +2,8 @@
 
 import pytest
 
-from akp_runtime.events.bus import EventBus, RuntimeEvent
+from akp_runtime.contracts.events import RuntimeEvent
+from akp_runtime.events.bus import EventBus
 
 
 @pytest.fixture

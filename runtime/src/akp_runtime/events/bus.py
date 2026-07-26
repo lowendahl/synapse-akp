@@ -1,85 +1,18 @@
-"""Runtime domain events and event bus.
+"""Runtime event bus engine.
 
-What: Typed domain events raised by runtime lifecycle and tool invocations.
-Why: Decoupled observability — components emit events, observers log/react.
-Contracts: Events are frozen dataclasses with immutable fields. Bus dispatches by type.
-Boundaries: No IO in events; observers handle logging/persistence.
-Test strategy: Unit tests verify event emission, type dispatch, and handler isolation.
+What: Type-based pub/sub dispatcher for runtime domain events.
+Why: Decoupled observability — components emit events, observers react.
+Boundaries: Bus is pure infrastructure; event types live in contracts/events.py.
 """
 
 from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
+
+from akp_runtime.contracts.events import RuntimeEvent
 
 logger = logging.getLogger("akp_runtime.events")
-
-
-# ─── Base Event ─────────────────────────────────────────────────────────────
-
-
-@dataclass(frozen=True)
-class RuntimeEvent:
-    """Base class for all runtime domain events."""
-
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
-
-
-# ─── Lifecycle Events ───────────────────────────────────────────────────────
-
-
-@dataclass(frozen=True)
-class ServerStarting(RuntimeEvent):
-    config_source: str = ""
-
-
-@dataclass(frozen=True)
-class PackLoaded(RuntimeEvent):
-    pack_id: str = ""
-    pack_version: str = ""
-    object_count: int = 0
-
-
-@dataclass(frozen=True)
-class ServerReady(RuntimeEvent):
-    pack_count: int = 0
-    tools_registered: int = 0
-
-
-# ─── Tool Events ────────────────────────────────────────────────────────────
-
-
-@dataclass(frozen=True)
-class ToolInvoked(RuntimeEvent):
-    tool_name: str = ""
-    pack_ids: tuple[str, ...] = ()
-
-
-@dataclass(frozen=True)
-class ToolCompleted(RuntimeEvent):
-    tool_name: str = ""
-    result_count: int = 0
-    duration_ms: float = 0.0
-
-
-@dataclass(frozen=True)
-class ToolFailed(RuntimeEvent):
-    tool_name: str = ""
-    error_type: str = ""
-    error_message: str = ""
-
-
-# ─── Shutdown Event ─────────────────────────────────────────────────────────
-
-
-@dataclass(frozen=True)
-class ServerStopping(RuntimeEvent):
-    reason: str = "shutdown"
-
-
-# ─── Event Bus ──────────────────────────────────────────────────────────────
 
 EventHandler = Callable[[RuntimeEvent], None]
 

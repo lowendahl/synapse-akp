@@ -7,8 +7,7 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from akp_runtime.events.bus import (
-    EventBus,
+from akp_runtime.contracts.events import (
     PackLoaded,
     RuntimeEvent,
     ServerReady,
@@ -16,6 +15,7 @@ from akp_runtime.events.bus import (
     ToolCompleted,
     ToolInvoked,
 )
+from akp_runtime.events.bus import EventBus
 
 
 # Invariant: subscribing to a concrete event type only receives that event subtype.

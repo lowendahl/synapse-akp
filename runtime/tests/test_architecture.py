@@ -96,6 +96,9 @@ class TestDependencyIsolation:
         for py_file in RUNTIME_SRC.rglob("*.py"):
             if py_file.name == "duckdb_loader.py":
                 continue
+            # persistence layer is part of the duckdb adapter boundary
+            if "persistence" in py_file.parts:
+                continue
             imports = _get_imports(py_file)
             assert "duckdb" not in imports, f"{py_file.relative_to(RUNTIME_SRC)} must not import duckdb"
 

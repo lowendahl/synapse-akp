@@ -14,7 +14,8 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
-from akp_runtime.events.bus import EventBus, ServerStarting, ServerStopping
+from akp_runtime.contracts.events import ServerStarting, ServerStopping
+from akp_runtime.events.bus import EventBus
 
 
 class RuntimeContext:

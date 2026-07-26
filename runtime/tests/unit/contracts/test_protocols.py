@@ -289,21 +289,26 @@ def test_protocols_import_without_optional_packages(monkeypatch: pytest.MonkeyPa
 
 # Invariant: runtime must never import kp_compiler and optional packages stay behind designated adapters.
 @pytest.mark.parametrize(
-    ("forbidden_module", "allowed_relative_path"),
+    ("forbidden_module", "allowed_paths"),
     (
-        ("duckdb", Path("infrastructure\\duckdb_loader.py")),
-        ("usearch", Path("infrastructure\\usearch_reader.py")),
-        ("fastembed", Path("infrastructure\\fastembed_adapter.py")),
+        ("duckdb", (Path("infrastructure\\duckdb_loader.py"), Path("infrastructure\\persistence"))),
+        ("usearch", (Path("infrastructure\\usearch_reader.py"),)),
+        ("fastembed", (Path("infrastructure\\fastembed_adapter.py"),)),
     ),
 )
 def test_optional_dependency_imports_are_isolated(
     forbidden_module: str,
-    allowed_relative_path: Path,
+    allowed_paths: tuple[Path, ...],
 ) -> None:
     for py_file in SOURCE_ROOT.rglob("*.py"):
         imported = _imported_roots(py_file)
         if forbidden_module in imported:
-            assert py_file.relative_to(SOURCE_ROOT) == allowed_relative_path
+            rel = py_file.relative_to(SOURCE_ROOT)
+            allowed = any(
+                rel == p or str(rel).startswith(str(p))
+                for p in allowed_paths
+            )
+            assert allowed, f"{rel} must not import {forbidden_module}"
 
 
 # Invariant: runtime must have no compiler dependency at the source level.
