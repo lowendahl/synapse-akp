@@ -36,26 +36,30 @@ The principle issue: the runtime treats all objects as equally important peers, 
 
 | Option | Pros | Cons |
 |--------|------|------|
-| **A. Hard-coded type priority list** | Simple, fast | Brittle, not ontology-driven, breaks on new types |
-| **B. Ontology-declared type roles** | Declarative, extensible | Requires ontology schema change |
-| **C. Structural inference from predicates (chosen)** | Zero ontology changes, uses existing relationship semantics | Slightly more complex resolution logic |
+| **A. Hard-coded type priority list** | Simple, fast | Brittle, not ontology-driven, breaks on new domains |
+| **B. Infer roles from predicate constraints** | No ontology change | Inference may be wrong for new domains; not corpus-author intent |
+| **C. Ontology-declared resolution roles (chosen)** | Explicit, corpus-agnostic, author declares intent | Requires one field added to ontology type definitions |
 | **D. Cluster-based resolution** | Most complete | Over-engineered for current scale |
 
 ## Decision
 
-### 1. The ontology's predicate constraints SHALL define structural type roles
+### 1. The ontology SHALL declare resolution roles for object types
 
-Object types are classified into structural roles based on how predicates reference them:
+Each object type definition in the ontology SHALL include a `resolution_role` field that classifies it for disambiguation:
 
-- **Primary types** — types that appear as `subject_types` in directional predicates like `measures`, `operationalizes`, `depends_on`. These are *actors* that do things.
-- **Supporting types** — types that appear only as `object_types` in predicates like `evidenced_by` (i.e., Evidence_Map, Evidence_Source). These *serve* primary types.
+- **`concept`** — the primary thing being discussed. This is what a user means when they use a shared alias without qualification. In CSU: Process, Outcome. In a competitive analysis corpus: Claim. In a sovereign playbook: Regulation.
+- **`measurement`** — things that quantify or track concepts. In CSU: KPI, Metric.
+- **`evidence`** — things that observe or provide data about concepts. In CSU: Evidence_Map, Evidence_Source.
+- **`neutral`** (default) — no special resolution priority.
 
-This classification is derived, not declared — the runtime SHALL infer it from the ontology's predicate constraint definitions at pack load time.
+Resolution priority order: concept > measurement > evidence > neutral.
 
-### 2. Alias resolution SHALL prefer primary types over supporting types
+This is corpus-declarative: each ontology decides which types are its "concepts" based on its domain semantics. The runtime applies the same resolution algorithm regardless of domain.
 
-When an alias matches multiple objects, the runtime SHALL rank results so that primary-role objects appear before supporting-role objects. Within the same role tier, ordering SHALL prefer:
-1. Objects where the alias appears in the title (exact title match)
+### 2. Alias resolution SHALL prefer concept-role types
+
+When an alias matches multiple objects, the runtime SHALL rank results by their type's resolution_role. Within the same role tier, ordering SHALL prefer:
+1. Objects where the alias matches the title most closely
 2. Objects with more inbound relationship edges (higher graph centrality)
 
 ### 3. The explain operation SHALL compose across concept facets
@@ -72,20 +76,21 @@ The explanation SHALL clearly attribute each section to its source object, maint
 
 The operation SHALL follow at most one hop for facet composition. It SHALL NOT recursively expand the graph. The predicates followed for composition SHALL be limited to structural predicates: `measures`/`measured_by`, `evidenced_by`/`provides_evidence_for`, `operationalizes`/`operationalized_by`.
 
-### 5. The ontology MAY declare explicit type roles in a future version
+### 5. Types without an explicit resolution_role SHALL default to neutral
 
-If structural inference proves insufficient, the ontology schema MAY be extended with an explicit `role: primary | supporting | meta` field on object type definitions. This ADR does not require that change — inference from predicates is sufficient for the current type system.
+When an ontology does not declare `resolution_role` for a type, the runtime SHALL treat it as `neutral`. This ensures backward compatibility — existing ontologies work without modification, they just lack disambiguation until roles are declared.
 
 ## Consequences
 
 ### Positive
-- "Job1" resolves to the KPI (primary type) instead of the Evidence Map (supporting type)
+- "Job1" resolves to the Process (what it IS), not the Evidence Map or KPI
 - Explanations are multi-faceted: what it is + how it's measured + how to look at it
-- No ontology schema changes required — uses existing predicate constraints
+- Corpus-agnostic — each ontology declares its own concept types (Claim, Regulation, Process — whatever fits the domain)
 - Works for all concepts that follow the same structural pattern (UDC, Job2, etc.)
 - Deterministic — same query always resolves the same way
+- Backward compatible — missing roles default to neutral
 
 ### Negative
+- Requires one field added to ontology type definitions (mitigated: small, one-time change per ontology)
 - Resolution logic is more complex (mitigated: bounded to one-hop traversal)
-- Type role inference adds startup cost at pack load (mitigated: cached once)
-- If ontology predicates lack constraints, role inference degrades to alphabetical (mitigated: ontology already has good constraint coverage)
+- Type role metadata adds a small cost at pack load (mitigated: cached once, tiny compared to BM25 indexing)
