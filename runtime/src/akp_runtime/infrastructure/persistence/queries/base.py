@@ -13,6 +13,7 @@ from typing import Any, Generic, TypeVar
 import duckdb
 
 from akp_runtime.contracts.errors import PackQueryError, RuntimeStateError
+from akp_runtime.contracts.protocols import QueryExecutorProtocol
 
 ResultT = TypeVar("ResultT")
 
@@ -22,6 +23,7 @@ class PackQuery(ABC, Generic[ResultT]):
 
     Subclasses define the SQL and parameters; the executor handles
     connection lifecycle and error translation.
+    Implements QueryObjectProtocol from contracts.
     """
 
     @abstractmethod
@@ -42,10 +44,11 @@ class PackQuery(ABC, Generic[ResultT]):
         return self.__class__.__name__
 
 
-class QueryExecutor:
+class QueryExecutor(QueryExecutorProtocol):
     """Executes PackQuery objects against a DuckDB connection.
 
     Translates DuckDB errors into domain-specific exceptions.
+    Implements QueryExecutorProtocol from contracts.
     """
 
     def __init__(self, connection: duckdb.DuckDBPyConnection, pack_id: str) -> None:

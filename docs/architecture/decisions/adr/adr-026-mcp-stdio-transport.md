@@ -29,7 +29,8 @@ Implementation details:
 - Use the Python `mcp` SDK's `FastMCP` surface for tool registration
 - Server launched as subprocess: `python -m akp_runtime --config path/to/config.yaml`
 - Client (CSU-IQ context assembler) connects via MCP client SDK over stdin/stdout
-- Four tools exposed: `akp_search`, `akp_lookup_concept`, `akp_expand_graph`, `akp_get_provenance`
+- Four tools exposed initially: `akp_search`, `akp_lookup_concept`, `akp_expand_graph`, `akp_get_provenance`
+- Fifth tool planned: `akp_explain_concept` (ADR-038) — human-readable prose synthesis
 - Each tool accepts typed JSON input and returns typed JSON output
 - Errors map to MCP error codes (-32602 for validation, -32000 for domain, -32603 for internal)
 

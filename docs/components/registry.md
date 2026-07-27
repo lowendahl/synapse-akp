@@ -1,34 +1,35 @@
-# AKP Registry
+# Component: AKP Registry
 
 ## Purpose
+The registry component defines the future distribution boundary for immutable AKP releases: publication, retrieval, trust, and environment promotion. In this repository it is an architectural contract rather than an implemented Python subsystem.
 
-Store, version, and distribute AKP packages.
+## Modules Covered
+- _No repository source modules implement the registry boundary yet._
 
 ## Responsibilities
-
-- Publish packages
-- Retrieve packages
-- List versions
-- Resolve dependencies
-- Verify signatures
-- Deprecate packages
-- Revoke packages
-- Promote packages between environments
-- Record lineage
+- Define the release-time ownership boundary for published packs
+- Preserve immutability, lineage, and trust expectations for distribution
+- Provide the architectural target for publish and retrieval workflows
 
 ## Out of Scope
-
-- Compilation
-- Runtime serving
+- Local compilation
+- Runtime query execution
 - Knowledge authoring
 
 ## Promises
-
-- Immutable released versions
-- Dependency resolution support
-- Trust verification support
+- **P-REG-001**: Published AKP versions are modeled as immutable release artifacts.
+- **P-REG-002**: Dependency resolution and trust verification remain explicit registry concerns.
+- **P-REG-003**: Runtime consumption and compilation can evolve without collapsing the registry boundary.
 
 ## Invariants
+- **INV-REG-001**: A released version is never conceptually overwritten.
+- **INV-REG-002**: Trust and revocation are release-governance concerns, not runtime heuristics.
+- **INV-REG-003**: Registry behavior is external to authoring and retrieval packages.
 
-- A published version is never overwritten
-- Revoked packages are rejected by production runtimes
+## Dependencies
+- Architecture decisions for distribution and trust
+
+## Dependents
+- Future publish workflows
+- Runtime pack acquisition flows
+- Platform governance and promotion automation

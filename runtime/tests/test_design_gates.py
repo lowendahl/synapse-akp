@@ -97,9 +97,7 @@ def _find_sql_strings(filepath: Path) -> list[tuple[int, str]]:
     return [
         (node.lineno, node.value[:80])
         for node in ast.walk(tree)
-        if isinstance(node, ast.Constant)
-        and isinstance(node.value, str)
-        and _SQL_KEYWORD_PATTERN.search(node.value)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str) and _SQL_KEYWORD_PATTERN.search(node.value)
     ]
 
 
@@ -188,9 +186,7 @@ class TestEventSeparation:
                     elif isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name):
                         decorator_name = decorator.func.id
                     if decorator_name == "dataclass":
-                        violations.append(
-                            f"  {filepath.relative_to(RUNTIME_SRC)}: '{node.name}' belongs in contracts/"
-                        )
+                        violations.append(f"  {filepath.relative_to(RUNTIME_SRC)}: '{node.name}' belongs in contracts/")
 
         if violations:
             pytest.fail("Gate 5 VIOLATION:\n" + "\n".join(violations))

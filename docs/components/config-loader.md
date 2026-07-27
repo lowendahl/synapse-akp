@@ -1,67 +1,41 @@
 # Component: Config Loader
 
-## Module
-
-`akp_runtime.infrastructure.config_loader`
-
 ## Purpose
+The config loader converts YAML files, environment overrides, and model defaults into a single validated `RuntimeConfigModel`. It is the runtime's deterministic configuration boundary and keeps configuration parsing out of bootstrap and operations code.
 
-Load and merge runtime configuration from multiple sources into a validated
-`RuntimeConfigModel`. Provides a single, deterministic configuration object
-that the bootstrap pipeline uses to initialize the runtime.
+## Modules Covered
+- `akp_runtime.infrastructure.config_loader` — YAML parsing, `AKP_` environment overrides, path resolution, and validation
 
 ## Responsibilities
-
-1. **Load YAML configuration** — read a `config.yaml` file from disk.
-2. **Apply environment variable overrides** — `AKP_*` prefixed env vars
-   override YAML values.
-3. **Apply precedence** — env vars > YAML file > defaults (Pydantic defaults).
-4. **Resolve pack paths** — relative paths resolved against config file directory.
-5. **Validate configuration** — produce a typed `RuntimeConfigModel` or fail.
-6. **Support explicit config path** — caller may pass a specific path.
-7. **Support auto-discovery** — search current directory and `~/.akp/` for config.
+- Load `config.yaml` from an explicit path or standard discovery locations
+- Merge configuration sources with precedence `environment > YAML > defaults`
+- Resolve relative pack paths against the configuration file location
+- Validate the merged configuration into `RuntimeConfigModel`
+- Translate malformed configuration into typed runtime errors
 
 ## Out of Scope
-
-- **Pack validation** — handled by pack loader.
-- **Runtime lifecycle** — handled by `pipeline/bootstrap.py`.
-- **MCP server setup** — handled by `consumer/mcp_server.py`.
-- **Secret management** — env vars only; no vault integration.
+- Pack schema validation
+- Runtime lifecycle management
+- MCP server setup
+- Secret vault integration
 
 ## Promises
-
-1. **P-PRECEDENCE**: Environment variables ALWAYS override YAML values which
-   ALWAYS override Pydantic defaults. This order is guaranteed.
-2. **P-VALIDATED**: The returned model is fully validated by Pydantic.
-   Invalid values raise `ConfigurationError`.
-3. **P-PROTOCOL**: The implementation MUST satisfy the `ConfigLoader` protocol.
-4. **P-RESOLVE-PATHS**: Pack paths are resolved to absolute paths relative to
-   the config file's parent directory.
-5. **P-MISSING-OK**: If no config file is found and no explicit path given,
-   return defaults (no packs loaded, embeddings enabled, default limits).
-6. **P-ENV-PREFIX**: Only `AKP_` prefixed environment variables are read.
-   Unknown env vars are ignored.
-7. **P-DETERMINISTIC**: Same inputs (file + env) → same output model.
+- **P-CONFIG-001**: Only `AKP_`-prefixed environment variables participate in overrides.
+- **P-CONFIG-002**: Environment overrides take precedence over YAML, which takes precedence over model defaults.
+- **P-CONFIG-003**: Relative pack paths in YAML are rewritten relative to the config file directory.
+- **P-CONFIG-004**: Missing auto-discovered config files fall back to defaults rather than failing.
+- **P-CONFIG-005**: Invalid YAML or invalid merged values raise `ConfigurationError` with source context.
 
 ## Invariants
-
-1. **INV-NO-SIDE-EFFECTS**: Loading config MUST NOT modify the filesystem,
-   environment, or any global state.
-2. **INV-LAYER-BOUNDARY**: This module imports ONLY from `contracts/`.
-   It MUST NOT import from `domain/`, `operations/`, `pipeline/`, or `consumer/`.
-3. **INV-SINGLE-RESPONSIBILITY**: This module handles ONLY configuration.
-   No database connections, no embedding initialization.
+- **INV-CONFIG-001**: Configuration loading performs no writes to the filesystem or environment.
+- **INV-CONFIG-002**: This component imports only runtime contracts and standard parsing libraries.
+- **INV-CONFIG-003**: Bootstrap receives a fully validated model rather than raw dictionaries.
 
 ## Dependencies
+- `akp_runtime.contracts.mcp_models`
+- `akp_runtime.contracts.errors`
+- `yaml` and `pydantic`
 
-- `pyyaml` — YAML parsing
-- `akp_runtime.contracts.mcp_models` — `RuntimeConfigModel`, `PackBindingModel`
-- `akp_runtime.contracts.errors` — `ConfigurationError`
-
-## Testing Strategy
-
-- **Unit tests**: YAML parsing, env override, path resolution, defaults.
-- **Validation tests**: Invalid YAML, missing required pack fields, bad types.
-- **Precedence tests**: Env overrides YAML overrides defaults.
-- **Path resolution tests**: Relative and absolute paths, missing directories.
-- **Protocol compliance**: `isinstance(impl, ConfigLoader)` passes.
+## Dependents
+- `akp_runtime.pipeline.bootstrap`
+- Runtime startup automation

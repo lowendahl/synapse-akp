@@ -12,8 +12,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import duckdb
+
 from kp_compiler.contracts.protocols import Diagnostic, Severity
 from kp_compiler.domain.models import KnowledgeObject
+from kp_compiler.stages.project.queries import DependencyDomainQuery, DependencyObjectIdentifiersQuery
 
 
 @dataclass
@@ -29,14 +32,12 @@ class CrossPackResult:
 
 def load_dependency_manifest(pack_path: Path) -> set[str]:
     """Load the set of object IDs from a dependency pack's manifest."""
-    import duckdb
-
     if not pack_path.exists():
         return set()
 
     con = duckdb.connect(str(pack_path), read_only=True)
     try:
-        rows = con.execute("SELECT id FROM objects").fetchall()
+        rows = DependencyObjectIdentifiersQuery().execute(con)
         return {row[0] for row in rows}
     finally:
         con.close()
@@ -44,11 +45,9 @@ def load_dependency_manifest(pack_path: Path) -> set[str]:
 
 def _detect_dependency_domain(dependency_pack: Path) -> str | None:
     """Infer the domain prefix from a dependency pack's object IDs."""
-    import duckdb
-
     con = duckdb.connect(str(dependency_pack), read_only=True)
     try:
-        row = con.execute("SELECT id FROM objects LIMIT 1").fetchone()
+        row = DependencyDomainQuery().execute(con)
         if row and "." in row[0]:
             return row[0].split(".")[0]
         return None
@@ -105,15 +104,17 @@ def validate_cross_pack_refs(
                     result.refs_resolved += 1
                 else:
                     result.refs_broken += 1
-                    result.diagnostics.append(Diagnostic(
-                        severity=Severity.ERROR,
-                        source_file=obj.source_path,
-                        message=(
-                            f"Broken cross-pack ref: '{target}' not found "
-                            f"in dependency pack ({dep_domain or 'unknown'})"
-                        ),
-                        stage="cross_pack",
-                        object_id=obj.id,
-                    ))
+                    result.diagnostics.append(
+                        Diagnostic(
+                            severity=Severity.ERROR,
+                            source_file=obj.source_path,
+                            message=(
+                                f"Broken cross-pack ref: '{target}' not found "
+                                f"in dependency pack ({dep_domain or 'unknown'})"
+                            ),
+                            stage="cross_pack",
+                            object_id=obj.id,
+                        )
+                    )
 
     return result

@@ -54,7 +54,9 @@ class TestCrossPackValidation:
 
     def test_file_path_refs_ignored(self) -> None:
         """Markdown link paths like /mcem/stages/1-listen.md should be skipped."""
-        rels = [Relationship(subject_id="csu.process.plan", predicate="references", object_id="/mcem/stages/1-listen.md")]
+        rels = [
+            Relationship(subject_id="csu.process.plan", predicate="references", object_id="/mcem/stages/1-listen.md")
+        ]
         objs = [_make_obj("csu.process.plan", relationships=rels)]
         result = validate_cross_pack_refs(objs, pack_id="kp-csu")
         assert result.refs_checked == 0

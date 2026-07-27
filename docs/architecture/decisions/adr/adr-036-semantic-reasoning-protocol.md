@@ -6,7 +6,7 @@
 | **Status** | Accepted |
 | **Date** | 2026-07-26 |
 | **Decision Makers** | Patrik Lowendahl |
-| **Related** | ADR-017 (LLM protocol), ADR-018 (unified pipeline) |
+| **Related** | ADR-017 (LLM protocol), ADR-018 (unified pipeline), ADR-038 (explain operation) |
 | **Supersedes** | Widens ADR-017's `AcronymReasoningClient` into a broader protocol |
 
 ## Context
@@ -100,3 +100,4 @@ No prompts are hardcoded in the framework — they are assembled from templates 
 - New providers (Azure OpenAI, Ollama, Foundry) implement the same protocol.
 - Testing uses a `MockReasoningProvider` that returns fixture responses.
 - The protocol is versioned — adding methods is backwards-compatible (they default to `NotImplementedError`).
+- ADR-038 adds `synthesize_explanation()` to this protocol for human-readable concept explanations.

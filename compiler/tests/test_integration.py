@@ -1,11 +1,11 @@
 """Integration test — full pipeline compile + consumer query."""
+
 import tempfile
 from pathlib import Path
 
 import duckdb
 
 from kp_compiler.pipeline.compiler import compile_pack
-
 
 FIXTURE_ONTOLOGY = {
     "version": "1.0.0",
@@ -111,9 +111,7 @@ class TestFullPipeline:
             alias_count = con.execute("SELECT COUNT(*) FROM aliases").fetchone()[0]
             assert alias_count > 0
 
-            c2c_alias = con.execute(
-                "SELECT canonical_id FROM aliases WHERE alias = 'c2c'"
-            ).fetchone()
+            c2c_alias = con.execute("SELECT canonical_id FROM aliases WHERE alias = 'c2c'").fetchone()
             assert c2c_alias is not None
             assert c2c_alias[0] == "csu.metric.job1-c2c"
 
@@ -126,9 +124,7 @@ class TestFullPipeline:
             assert node_count == 2
 
             # Manifest
-            pack_id = con.execute(
-                "SELECT value FROM manifest WHERE key = 'pack_id'"
-            ).fetchone()
+            pack_id = con.execute("SELECT value FROM manifest WHERE key = 'pack_id'").fetchone()
             assert pack_id[0] == "test-pack"
 
             con.close()

@@ -3,6 +3,7 @@ type: Process
 title: Commit-to-Complete
 id: csu.process.commit-to-complete
 description: The CSU execution model where CSU becomes accountable for driving committed milestones to completion at 95%+ rate.
+aliases: [Job1, Job 1, C2C, Commit to Complete]
 tags: [csu, process, c2c, execution, milestones]
 relationships:
   - predicate: operationalizes

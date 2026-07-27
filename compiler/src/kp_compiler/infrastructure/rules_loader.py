@@ -12,10 +12,11 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
+from kp_compiler.contracts.infrastructure_protocols import RulesLoaderProtocol
 from kp_compiler.domain.rules import PackRules
 
 
-class RulesLoader:
+class RulesLoader(RulesLoaderProtocol):
     """Loads and validates pack-rules.yaml from the filesystem."""
 
     def load(self, path: Path) -> PackRules:

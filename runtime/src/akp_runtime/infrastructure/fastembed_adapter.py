@@ -5,8 +5,10 @@ Lazy-loads the embedding model on first use to keep startup fast.
 
 from __future__ import annotations
 
+from akp_runtime.contracts.protocols import QueryEmbedder
 
-class FastEmbedQueryEmbedder:
+
+class FastEmbedQueryEmbedder(QueryEmbedder):
     """Embeds queries using FastEmbed for vector search."""
 
     def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5") -> None:

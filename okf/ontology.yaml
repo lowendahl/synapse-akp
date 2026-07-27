@@ -13,24 +13,28 @@ object_types:
 
   Framework:
     description: "High-level methodology or operating model"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status]
     domains: [mcem, csu]
 
   Stage:
     description: "A phase or stage within a framework lifecycle"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status, sequence]
     domains: [mcem]
 
   Methodology:
     description: "A defined approach or method"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status]
     domains: [mcem]
 
   Strategy:
     description: "Strategic intent or direction"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status]
     domains: [csu]
@@ -49,48 +53,56 @@ object_types:
 
   Process:
     description: "A defined business or operational process"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status, steps]
     domains: [mcem, csu]
 
   Metric:
     description: "A quantitative measurement or indicator"
+    resolution_role: measurement
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status, formula, classification, thresholds, measurement_paradigm]
     domains: [csu]
 
   KPI:
     description: "A key performance indicator with targets and accountability"
+    resolution_role: measurement
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status, formula, classification, thresholds, measurement_paradigm]
     domains: [csu, mcem]
 
   Doctrine:
     description: "A principle, policy, or governing belief"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status]
     domains: [csu]
 
   Program:
     description: "A formal investment or initiative program"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status]
     domains: [csu]
 
   Outcome:
     description: "A desired result or outcome framework"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status]
     domains: [csu]
 
   Evidence_Source:
     description: "An operational system providing measurement data"
+    resolution_role: evidence
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status, platform, access_pattern]
     domains: [csu]
 
   Evidence_Map:
     description: "A mapping from concept to evidence sources and measures"
+    resolution_role: evidence
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status]
     domains: [csu]
@@ -103,12 +115,14 @@ object_types:
 
   Priority:
     description: "A strategic priority or focus area"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status, sequence]
     domains: [csu]
 
   Planning:
     description: "A planning artifact or planning concept"
+    resolution_role: concept
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status]
     domains: [mcem, csu]
@@ -151,6 +165,7 @@ object_types:
 
   Measurement:
     description: "A measurement concept or paradigm"
+    resolution_role: measurement
     required_fields: [id, title, description]
     optional_fields: [aliases, tags, status]
     domains: [csu]

@@ -16,6 +16,11 @@ from kp_compiler.domain.knowledge_objects import (
     RoleObject,
 )
 
+
+class _DomainModelExports:
+    """Marker class preserving class-based module shape for the facade."""
+
+
 __all__ = [
     "ObjectType",
     "Origin",

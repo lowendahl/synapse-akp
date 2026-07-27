@@ -7,8 +7,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from akp_runtime.contracts.protocols import VectorIndex
 
-class USearchVectorIndex:
+
+class USearchVectorIndex(VectorIndex):
     """Reads a .usearch sidecar file for ANN search."""
 
     def __init__(self, index_path: Path, dimensions: int) -> None:

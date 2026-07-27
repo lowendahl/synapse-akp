@@ -14,6 +14,11 @@ from akp_runtime.contracts.mcp_lookup import ConceptUnitModel, LookupConceptTool
 from akp_runtime.contracts.mcp_provenance import GetProvenanceToolInput, GetProvenanceToolOutput, ProvenanceStepModel
 from akp_runtime.contracts.mcp_search import ChannelScoreModel, SearchResultModel, SearchToolInput, SearchToolOutput
 
+
+class _McpModelExports:
+    """Marker class preserving class-based module shape for the facade."""
+
+
 __all__ = [
     "PackBindingModel",
     "RuntimeConfigModel",

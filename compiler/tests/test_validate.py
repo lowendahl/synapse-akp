@@ -1,4 +1,5 @@
 """Unit tests for the validator stage."""
+
 from kp_compiler.contracts.protocols import Severity
 from kp_compiler.domain.models import KnowledgeObject, ObjectType, Provenance
 from kp_compiler.domain.ontology import Ontology

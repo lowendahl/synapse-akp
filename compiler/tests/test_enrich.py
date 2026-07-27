@@ -1,6 +1,6 @@
 """Tests for enrichment stage (ADR-012 — NLP enrichment)."""
 
-from kp_compiler.domain.models import KnowledgeObject, Relationship
+from kp_compiler.domain.models import KnowledgeObject
 from kp_compiler.stages.enrich import (
     detect_fuzzy_duplicates,
     enrich_corpus,
@@ -63,11 +63,13 @@ class TestExpandAliases:
         assert "unified delivery coverage" in expansions
         assert count > 0
 
-    def test_expands_body_acronyms(self) -> None:
+    def test_body_acronyms_do_not_become_aliases(self) -> None:
+        """Body-text mentions are references, not identity claims (ADR-039)."""
         obj = _make_obj(raw_body="Quarterly Business Review (QBR) is monthly.")
         new_aliases, count, _ = expand_aliases(obj)
         alias_set = {a.lower() for a in new_aliases}
-        assert "qbr" in alias_set or "quarterly business review" in alias_set
+        assert "qbr" not in alias_set
+        assert "quarterly business review" not in alias_set
 
     def test_no_duplicate_aliases(self) -> None:
         obj = _make_obj(

@@ -1,8 +1,8 @@
 """Tests for domain event bus (ADR-012, ES-05)."""
 
 from kp_compiler.events.bus import (
-    DomainEvent,
     DiscoveryComplete,
+    DomainEvent,
     EnrichmentComplete,
     EventBus,
     GraphBuilt,
@@ -76,7 +76,7 @@ class TestEventBus:
         event = ValidationComplete(error_count=3, warning_count=7)
         try:
             event.error_count = 99  # type: ignore[misc]
-            assert False, "Should not allow mutation"
+            raise AssertionError("Should not allow mutation")
         except AttributeError:
             pass
 

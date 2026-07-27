@@ -83,10 +83,4 @@ The design gates test suite (`test_design_gates.py`) SHALL enforce:
 
 ### Migration
 
-Completed in commit `718e5ea`:
-- Removed `KNOWN_ACRONYMS` (37 entries) from `enrich.py`
-- Removed `_CANONICAL_TYPE` (35 entries) from `discover_ontology.py`
-- Removed hardcoded "csu"/"mcem" strings from parser, CLI, pipeline
-- Added `type_aliases` to Ontology dataclass
-- Added `acronyms` to PackRules model
-- Updated all tests to supply configuration explicitly (87 passing)
+Domain-specific knowledge was removed from the framework and moved to configuration. Removal was verified through comprehensive testing.

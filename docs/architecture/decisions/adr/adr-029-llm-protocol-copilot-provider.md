@@ -108,7 +108,4 @@ Any provider implementing `AcronymReasoningClient` must:
 
 ### Implementation Status
 
-- `adapters/reasoning_client.py` — Protocol + request/response models ✅
-- `adapters/copilot_provider.py` — Scaffolded, `_call_completions` pending SDK ⏳
-- `adapters/embedding_client.py` — Protocol for semantic embeddings ✅
-- Mock provider for tests — not yet created (Phase 3 prerequisite)
+Refer to the implementation planning documents for current status and file-level tracking.

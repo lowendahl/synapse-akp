@@ -10,7 +10,7 @@ from akp_runtime.contracts.mcp_search import (
     SearchToolOutput,
 )
 from akp_runtime.contracts.protocols import LoadedPack, QueryEmbedder, VectorIndex
-from akp_runtime.domain.scoring import ReciprocalRankFusion, GraphProximityBooster
+from akp_runtime.domain.scoring import GraphProximityBooster, ReciprocalRankFusion
 
 
 class HybridSearchOperation:
@@ -86,32 +86,39 @@ class HybridSearchOperation:
         results = []
         for i, hit in enumerate(fused):
             prov_steps = self._pack.provenance_for_object(hit.object_id)
-            results.append(SearchResultModel(
-                pack_id=hit.pack_id,
-                pack_version=hit.pack_version or self._pack.metadata.pack_version,
-                object_id=hit.object_id,
-                unit_id=hit.unit_id,
-                title=hit.title,
-                object_type=hit.object_type,
-                domain=hit.domain,
-                heading_path=hit.heading_path,
-                snippet=hit.snippet or "",
-                score=hit.score,
-                source_kind=hit.source_kind or "authored",
-                channels=[
-                    ChannelScoreModel(
-                        channel="bm25", rank=i + 1,
-                        raw_score=hit.score, contribution=hit.score,
-                    )
-                ],
-                provenance=[
-                    ProvenanceStepModel(
-                        layer=s.layer, identifier=s.identifier, origin=s.origin,
-                        source_path=s.source_path, pack_id=s.pack_id,
-                        pack_version=s.pack_version,
-                    )
-                    for s in prov_steps
-                ],
-            ))
+            results.append(
+                SearchResultModel(
+                    pack_id=hit.pack_id,
+                    pack_version=hit.pack_version or self._pack.metadata.pack_version,
+                    object_id=hit.object_id,
+                    unit_id=hit.unit_id,
+                    title=hit.title,
+                    object_type=hit.object_type,
+                    domain=hit.domain,
+                    heading_path=hit.heading_path,
+                    snippet=hit.snippet or "",
+                    score=hit.score,
+                    source_kind=hit.source_kind or "authored",
+                    channels=[
+                        ChannelScoreModel(
+                            channel="bm25",
+                            rank=i + 1,
+                            raw_score=hit.score,
+                            contribution=hit.score,
+                        )
+                    ],
+                    provenance=[
+                        ProvenanceStepModel(
+                            layer=s.layer,
+                            identifier=s.identifier,
+                            origin=s.origin,
+                            source_path=s.source_path,
+                            pack_id=s.pack_id,
+                            pack_version=s.pack_version,
+                        )
+                        for s in prov_steps
+                    ],
+                )
+            )
 
         return SearchToolOutput(results=results)

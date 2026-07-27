@@ -10,9 +10,10 @@ Test strategy: Unit tests verify event emission and observer invocation.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable
+from datetime import UTC, datetime
+from typing import Any
 
 logger = logging.getLogger("kp_compiler.events")
 
@@ -24,7 +25,7 @@ logger = logging.getLogger("kp_compiler.events")
 class DomainEvent:
     """Base class for all domain events."""
 
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ─── Pipeline Events ───────────────────────────────────────────────────────

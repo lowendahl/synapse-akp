@@ -4,9 +4,7 @@ from kp_compiler.domain.models import SemanticUnit
 from kp_compiler.stages.bm25 import build_bm25_index, query_bm25
 
 
-def _make_unit(
-    uid: str, heading: str, content: str, context: str = ""
-) -> SemanticUnit:
+def _make_unit(uid: str, heading: str, content: str, context: str = "") -> SemanticUnit:
     return SemanticUnit(
         id=uid,
         source_object_id="obj.test",

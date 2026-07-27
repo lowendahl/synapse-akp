@@ -3,6 +3,7 @@ type: Program
 title: Success Programs
 id: csu.program.success-programs
 description: Scalable delivery programs that drive predictable customer outcomes through standardized engagements.
+aliases: [SP, Success Programs, Scalable Programs]
 tags: [csu, program, success, delivery, scale]
 relationships:
   - predicate: extends

@@ -20,6 +20,11 @@ from akp_runtime.domain.search_results import (
     SemanticUnitRecord,
 )
 
+
+class _DomainModelExports:
+    """Marker class preserving class-based module shape for the facade."""
+
+
 # Backward-compatible aliases
 _EMPTY_METADATA = MetadataFreezer.freeze(None)
 _freeze_metadata = MetadataFreezer.freeze
@@ -38,4 +43,3 @@ __all__ = [
     "_EMPTY_METADATA",
     "_freeze_metadata",
 ]
-

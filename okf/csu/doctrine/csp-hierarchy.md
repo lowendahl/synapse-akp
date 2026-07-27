@@ -3,7 +3,7 @@ type: Doctrine
 title: CSP Hierarchy
 id: csu.doctrine.csp-hierarchy
 description: The complete hierarchy from Account Plan → Customer Objective → Customer Priority → Customer Success Plan → Milestone that governs CSU execution.
-tags: [csu, csp, hierarchy, doctrine, account-plan, objective, priority, milestone, execution]
+tags: [csu, hierarchy, doctrine, account-plan, objective, priority, milestone, execution]
 relationships:
   - predicate: informs
     object: csu.planning.account-plan

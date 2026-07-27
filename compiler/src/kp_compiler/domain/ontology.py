@@ -33,6 +33,7 @@ class ObjectTypeSpec:
     required_fields: list[str] = field(default_factory=list)
     optional_fields: list[str] = field(default_factory=list)
     domains: list[str] = field(default_factory=list)
+    resolution_role: str = "neutral"
 
 
 @dataclass
@@ -55,6 +56,7 @@ class Ontology:
                 required_fields=spec.get("required_fields", []),
                 optional_fields=spec.get("optional_fields", []),
                 domains=spec.get("domains", []),
+                resolution_role=spec.get("resolution_role", "neutral"),
             )
 
         predicates: dict[str, PredicateSpec] = {}
@@ -90,8 +92,22 @@ class Ontology:
         return type_name in self.object_types or type_name.replace(" ", "_") in self.object_types
 
     def is_valid_predicate(self, predicate: str) -> bool:
-        """Check if a predicate is in the ontology."""
-        return predicate in self.predicates
+        """Check if a predicate is in the ontology (including inverses)."""
+        if predicate in self.predicates:
+            return True
+        return any(spec.inverse == predicate for spec in self.predicates.values())
+
+    def merge_discovered_predicates(self, discovered_predicates: dict[str, object]) -> int:
+        """Merge corpus-discovered predicates into the ontology.
+
+        Returns the count of newly added predicates.
+        """
+        added = 0
+        for name in discovered_predicates:
+            if not self.is_valid_predicate(name):
+                self.predicates[name] = PredicateSpec(name=name, description=f"Auto-discovered from corpus")
+                added += 1
+        return added
 
     def is_valid_id(self, id_value: str) -> bool:
         """Check if an ID matches the required format."""
@@ -104,3 +120,11 @@ class Ontology:
         if spec:
             return spec.required_fields
         return []
+
+    def get_resolution_role(self, type_name: str) -> str:
+        """Get the resolution role for a given type (concept/measurement/evidence/neutral)."""
+        key = type_name.replace(" ", "_")
+        spec = self.object_types.get(type_name) or self.object_types.get(key)
+        if spec:
+            return spec.resolution_role
+        return "neutral"

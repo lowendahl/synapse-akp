@@ -11,30 +11,42 @@ from __future__ import annotations
 import sys
 
 
-def main() -> None:
-    """Dispatch to compile or find subcommand."""
-    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
-        print("Knowledge Pack CLI")
-        print()
-        print("Usage:")
-        print("  kp compile <source> [options]   Compile OKF sources into a Knowledge Pack")
-        print("  kp find <query> [options]        Search a compiled Knowledge Pack")
-        print()
-        print("Run 'kp compile --help' or 'kp find --help' for subcommand options.")
-        sys.exit(0)
+class Application:
+    """Dispatch the package CLI to the selected subcommand."""
 
-    subcommand = sys.argv[1]
-    sys.argv = [sys.argv[0]] + sys.argv[2:]  # strip subcommand from argv
+    def run(self) -> None:
+        """Dispatch to compile or find subcommand."""
+        if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
+            print("Knowledge Pack CLI")
+            print()
+            print("Usage:")
+            print("  kp compile <source> [options]   Compile OKF sources into a Knowledge Pack")
+            print("  kp find <query> [options]        Search a compiled Knowledge Pack")
+            print()
+            print("Run 'kp compile --help' or 'kp find --help' for subcommand options.")
+            sys.exit(0)
 
-    if subcommand == "compile":
-        from kp_compiler.cli import main as compile_main
-        compile_main()
-    elif subcommand == "find":
-        from kp_compiler.consumer.cli import main as find_main
-        find_main()
-    else:
+        subcommand = sys.argv[1]
+        sys.argv = [sys.argv[0]] + sys.argv[2:]
+
+        if subcommand == "compile":
+            from kp_compiler.cli import main as compile_main
+
+            compile_main()
+            return
+        if subcommand == "find":
+            from kp_compiler.consumer.cli import main as find_main
+
+            find_main()
+            return
+
         print(f"Unknown subcommand: '{subcommand}'. Use 'compile' or 'find'.")
         sys.exit(1)
+
+
+def main() -> None:
+    """Run the package CLI application."""
+    Application().run()
 
 
 if __name__ == "__main__":

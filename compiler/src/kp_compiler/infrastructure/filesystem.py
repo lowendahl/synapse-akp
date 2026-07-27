@@ -11,8 +11,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from kp_compiler.contracts.stage_protocols import SourceReader
 
-class FilesystemReader:
+
+class FilesystemReader(SourceReader):
     """Reads OKF source files from disk. Implements SourceReader protocol."""
 
     def discover(self, root: Path) -> list[Path]:

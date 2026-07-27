@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -19,8 +18,8 @@ class Relationship(BaseModel):
     predicate: str
     object_id: str
     origin: Origin = Origin.AUTHORED
-    confidence: Optional[float] = None
-    source_file: Optional[str] = None
+    confidence: float | None = None
+    source_file: str | None = None
 
 
 class Section(BaseModel):
@@ -31,7 +30,7 @@ class Section(BaseModel):
     heading: str
     level: int
     content: str
-    source_line: Optional[int] = None
+    source_line: int | None = None
 
 
 class Provenance(BaseModel):
@@ -40,11 +39,11 @@ class Provenance(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     source_file: str
-    source_revision: Optional[str] = None
+    source_revision: str | None = None
     compiler_version: str = "0.2.0"
     stage: str = "parse"
     origin: Origin = Origin.AUTHORED
-    timestamp: Optional[datetime] = None
+    timestamp: datetime | None = None
 
 
 class SemanticUnit(BaseModel):
