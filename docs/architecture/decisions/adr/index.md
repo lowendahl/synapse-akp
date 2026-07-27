@@ -51,6 +51,7 @@ status: stable
 | [ADR-036](./adr-036-semantic-reasoning-protocol.md) | Semantic Reasoning Protocol | 2026-07-26 |
 | [ADR-037](./adr-037-semantic-duckdb-schema.md) | Semantic DuckDB Schema Extension | 2026-07-26 |
 | [ADR-038](./adr-038-explain-operation.md) | Explain Operation — Human-Readable Concept Explanation | 2026-07-27 |
+| [ADR-039](./adr-039-concept-centric-resolution.md) | Concept-Centric Resolution and Multi-Faceted Explanation | 2026-07-27 |
 
 ## Open
 

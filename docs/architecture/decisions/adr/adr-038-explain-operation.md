@@ -81,3 +81,4 @@ All levels cite the same evidence; detail level controls which semantic units ar
 - LLM path adds latency (mitigated by fallback and potential caching)
 - Explanation quality varies with LLM quality (mitigated by structured, evidence-rich input)
 - New method on `SemanticReasoningClient` — existing providers must add an implementation or accept fallback
+- Single-object resolution may miss multi-faceted concepts (addressed by ADR-039)
