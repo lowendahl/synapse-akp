@@ -10,6 +10,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from akp_runtime.consumer.search_handler import HybridSearchHandler
+from akp_runtime.contracts.protocols import QueryEmbedder, VectorIndex
 from akp_runtime.infrastructure.duckdb_loader import DuckDBLoadedPack
 from akp_runtime.operations.explain_concept import ExplainConceptOperation
 
@@ -19,8 +21,15 @@ logger = logging.getLogger(__name__)
 class ToolHandlerRegistry:
     """Dispatches MCP tool calls to the appropriate pack operations."""
 
-    def __init__(self, packs: dict[str, DuckDBLoadedPack]) -> None:
+    def __init__(
+        self,
+        packs: dict[str, DuckDBLoadedPack],
+        vector_indexes: dict[str, VectorIndex] | None = None,
+        embedder: QueryEmbedder | None = None,
+    ) -> None:
         self._packs = packs
+        self._vector_indexes = vector_indexes or {}
+        self._embedder = embedder
 
     def handle_search(
         self,
@@ -29,35 +38,22 @@ class ToolHandlerRegistry:
         pack_ids: list[str],
         object_types: list[str],
     ) -> dict[str, Any]:
-        """Search across packs by alias match + fallback."""
+        """Search across packs using hybrid retrieval (alias + BM25 + vectors)."""
         results: list[dict] = []
         target_packs = self._resolve_packs(pack_ids)
 
-        for _pack_id, pack in target_packs.items():
-            hits = pack.exact_matches(query, limit=limit)
-            if not hits:
-                hits = pack.object_fallback(query, limit=limit)
-
-            for hit in hits:
-                if object_types and hit.object_type not in object_types:
-                    continue
-                results.append(
-                    {
-                        "pack_id": hit.pack_id,
-                        "object_id": hit.object_id,
-                        "title": hit.title,
-                        "object_type": hit.object_type,
-                        "domain": hit.domain,
-                        "snippet": hit.snippet or "",
-                        "score": hit.score,
-                    }
-                )
-                if len(results) >= limit:
-                    break
+        for pack_id, pack in target_packs.items():
+            handler = HybridSearchHandler(
+                pack=pack,
+                vector_index=self._vector_indexes.get(pack_id),
+                embedder=self._embedder,
+            )
+            pack_results = handler.search(query, limit=limit - len(results), object_types=object_types)
+            results.extend(pack_results)
             if len(results) >= limit:
                 break
 
-        return {"results": results, "total": len(results)}
+        return {"results": results[:limit], "total": len(results)}
 
     def handle_lookup(
         self,

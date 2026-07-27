@@ -105,7 +105,7 @@ class Ontology:
         added = 0
         for name in discovered_predicates:
             if not self.is_valid_predicate(name):
-                self.predicates[name] = PredicateSpec(name=name, description=f"Auto-discovered from corpus")
+                self.predicates[name] = PredicateSpec(name=name, description="Auto-discovered from corpus")
                 added += 1
         return added
 

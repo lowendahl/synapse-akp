@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 from kp_compiler.contracts.protocols import Diagnostic
+from kp_compiler.domain.ontology import Ontology
 from kp_compiler.domain.rules import PackRules
 from kp_compiler.pipeline.alias_registry_builder import build_alias_registry
 from kp_compiler.pipeline.compilation_persistence import CompilationPersistence
@@ -22,7 +23,7 @@ class PackCompiler:
         self._projection = CompilationProjection()
         self._persistence = CompilationPersistence()
 
-    def _inject_resolution_roles(self, objects: list, ontology: "Ontology") -> None:
+    def _inject_resolution_roles(self, objects: list, ontology: Ontology) -> None:
         """Stamp each object's properties with its ontology-declared resolution_role."""
         for obj in objects:
             role = ontology.get_resolution_role(obj.type.value)

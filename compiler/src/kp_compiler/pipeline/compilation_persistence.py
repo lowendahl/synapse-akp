@@ -119,12 +119,14 @@ class CompilationPersistence:
         usearch_path = output_path.with_suffix(".usearch")
         has_vectors = usearch_path.exists()
         if has_vectors:
-            artifacts.append({
-                "file": "pack.usearch",
-                "type": "usearch_index",
-                "size_bytes": usearch_path.stat().st_size,
-                "sha256": hashlib.sha256(usearch_path.read_bytes()).hexdigest(),
-            })
+            artifacts.append(
+                {
+                    "file": "pack.usearch",
+                    "type": "usearch_index",
+                    "size_bytes": usearch_path.stat().st_size,
+                    "sha256": hashlib.sha256(usearch_path.read_bytes()).hexdigest(),
+                }
+            )
 
         manifest = {
             "pack_id": pack_id,

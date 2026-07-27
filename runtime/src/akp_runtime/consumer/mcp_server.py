@@ -17,6 +17,7 @@ from pathlib import Path
 from mcp.server.fastmcp import Context, FastMCP
 
 from akp_runtime.consumer.tool_handlers import ToolHandlerRegistry
+from akp_runtime.contracts.protocols import QueryEmbedder, VectorIndex
 from akp_runtime.infrastructure.config_loader import YamlConfigLoader
 from akp_runtime.infrastructure.duckdb_loader import DuckDBLoadedPack, DuckDBPackLoader
 
@@ -27,11 +28,18 @@ _MAX_IDENTIFIER_LENGTH = 200
 
 
 class PackContext:
-    """Lifespan state holding loaded packs and operations."""
+    """Lifespan state holding loaded packs, vector indexes, and operations."""
 
-    def __init__(self, packs: dict[str, DuckDBLoadedPack]) -> None:
+    def __init__(
+        self,
+        packs: dict[str, DuckDBLoadedPack],
+        vector_indexes: dict[str, VectorIndex] | None = None,
+        embedder: QueryEmbedder | None = None,
+    ) -> None:
         self.packs = packs
-        self.handlers = ToolHandlerRegistry(packs)
+        self.vector_indexes = vector_indexes or {}
+        self.embedder = embedder
+        self.handlers = ToolHandlerRegistry(packs, vector_indexes=self.vector_indexes, embedder=embedder)
 
 
 @asynccontextmanager
@@ -64,9 +72,48 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[PackContext]:
         logger.error("No packs loaded — check config.yaml packs section")
         raise SystemExit(1)
 
-    logger.info("AKP Runtime ready: %d pack(s) loaded", len(packs))
+    # Load vector indexes for packs that have embeddings
+    from akp_runtime.infrastructure.usearch_reader import USearchVectorIndex
+
+    vector_indexes: dict[str, USearchVectorIndex] = {}
+    embedder = None
+
+    for pack_id, pack in packs.items():
+        # Find .usearch sidecar alongside the pack's .duckdb
+        pack_path = pack.metadata.path
+        usearch_path = pack_path.with_suffix(".usearch")
+
+        # Also check in extracted .akp directory
+        if not usearch_path.exists():
+            usearch_path = pack_path.parent / "pack.usearch"
+
+        if not usearch_path.exists():
+            logger.debug("No vector index for pack '%s'", pack_id)
+            continue
+
+        # Load vector labels (unit_ids in order) from DuckDB
+        try:
+            labels = pack.vector_unit_labels()
+            dimensions = pack.metadata.embedding_dimensions
+            if dimensions > 0 and labels:
+                vector_indexes[pack_id] = USearchVectorIndex(usearch_path, dimensions, labels)
+                logger.info("Loaded vector index for '%s': %d vectors, %dd", pack_id, len(labels), dimensions)
+        except Exception:
+            logger.exception("Failed to load vector index for '%s'", pack_id)
+
+    # Initialize embedder if any vectors loaded
+    if vector_indexes and config.embeddings_enabled:
+        try:
+            from akp_runtime.infrastructure.fastembed_adapter import FastEmbedQueryEmbedder
+
+            embedder = FastEmbedQueryEmbedder()
+            logger.info("Query embedder initialized")
+        except Exception:
+            logger.warning("Failed to initialize embedder — vector search disabled")
+
+    logger.info("AKP Runtime ready: %d pack(s), %d vector index(es)", len(packs), len(vector_indexes))
     try:
-        yield PackContext(packs=packs)
+        yield PackContext(packs=packs, vector_indexes=vector_indexes, embedder=embedder)
     finally:
         for pack in packs.values():
             pack.close()

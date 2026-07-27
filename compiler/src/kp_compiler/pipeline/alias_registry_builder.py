@@ -16,9 +16,7 @@ class AliasRegistryBuilder:
                 continue
             aliases.append((obj.title, obj.id, "title"))
             aliases.extend((alias, obj.id, "author") for alias in obj.source_aliases)
-            aliases.extend(
-                (alias, obj.id, "explicit") for alias in obj.aliases if alias not in obj.source_aliases
-            )
+            aliases.extend((alias, obj.id, "explicit") for alias in obj.aliases if alias not in obj.source_aliases)
             aliases.extend((tag, obj.id, "tag") for tag in obj.tags if tag.lower() != domain_tag)
         return aliases
 

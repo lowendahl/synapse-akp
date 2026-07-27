@@ -51,7 +51,7 @@ class AliasExpander:
 
         for acronym, expansion in KnownAcronymCatalog.VALUES.items():
             # Match acronym only as whole word in title (not substring of another word)
-            title_match = bool(re.search(r'\b' + re.escape(acronym) + r'\b', obj.title, re.IGNORECASE))
+            title_match = bool(re.search(r"\b" + re.escape(acronym) + r"\b", obj.title, re.IGNORECASE))
             if title_match or acronym.lower() in existing:
                 for alias, source in ((expansion, "acronym-expansion"), (acronym, "acronym")):
                     if alias.lower() not in existing and allow(alias, source):

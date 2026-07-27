@@ -111,6 +111,15 @@ class DuckDBLoadedPack(LoadedPack):
             with contextlib.suppress(Exception):
                 self._connection.close()
 
+    def vector_unit_labels(self) -> list[str]:
+        """Return ordered unit_id labels for the vector index (key 0 → label[0])."""
+        from akp_runtime.infrastructure.persistence.queries.vector_queries import VectorUnitLabelsQuery
+
+        try:
+            return self._executor.execute(VectorUnitLabelsQuery())
+        except Exception:
+            return []
+
 
 class DuckDBPackLoader(PackLoader):
     """Loads and manages multiple Knowledge Packs."""

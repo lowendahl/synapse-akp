@@ -28,6 +28,7 @@ dev = [
 ]
 
 [project.scripts]
+akp = "akp_runtime.consumer.cli:main"
 akp-runtime = "akp_runtime.__main__:main"
 akp-runtime-mcp = "akp_runtime.consumer.mcp_server:main"
 

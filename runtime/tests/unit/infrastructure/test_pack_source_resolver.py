@@ -38,9 +38,7 @@ def temp_akp(tmp_path: Path) -> Path:
         "content_hash": "abc123",
         "build_timestamp": "2025-01-01T00:00:00Z",
         "embeddings_included": False,
-        "artifacts": [
-            {"file": "pack.duckdb", "type": "duckdb", "size_bytes": len(duckdb_content), "sha256": checksum}
-        ],
+        "artifacts": [{"file": "pack.duckdb", "type": "duckdb", "size_bytes": len(duckdb_content), "sha256": checksum}],
         "runtime_minimum_version": "0.1.0",
     }
     akp_path = tmp_path / "test.akp"

@@ -125,7 +125,7 @@ class PackSourceResolver:
     def _resolve_source(self, source: str, pack_id: str) -> Path | None:
         """Resolve a source URI string to a local path."""
         if source.startswith(_FILE_SCHEME):
-            local_path = Path(source[len(_FILE_SCHEME):])
+            local_path = Path(source[len(_FILE_SCHEME) :])
             return self._resolve_local_file(local_path, pack_id)
 
         if source.startswith(_GITHUB_SCHEME):
@@ -161,13 +161,17 @@ class PackSourceResolver:
                 if actual != expected:
                     logger.error(
                         "Pack '%s': checksum mismatch (expected %s, got %s)",
-                        pack_id, expected[:12], actual[:12],
+                        pack_id,
+                        expected[:12],
+                        actual[:12],
                     )
                     return None
 
             logger.info(
                 "Pack '%s' extracted from %s (format v%d)",
-                pack_id, akp_path.name, manifest_data.get("pack_format_version", 0),
+                pack_id,
+                akp_path.name,
+                manifest_data.get("pack_format_version", 0),
             )
             return duckdb_path
 
@@ -190,7 +194,7 @@ class PackSourceResolver:
 
     def _fetch_github_release(self, source: str, pack_id: str) -> Path | None:
         """Download a .akp from a GitHub release asset."""
-        parts = source[len(_GITHUB_SCHEME):].split("/")
+        parts = source[len(_GITHUB_SCHEME) :].split("/")
         if len(parts) < 5:
             logger.error("Invalid github:// URI for pack '%s': %s", pack_id, source)
             return None
@@ -212,9 +216,7 @@ class PackSourceResolver:
             logger.exception("Failed to download pack '%s' from %s", pack_id, download_url)
             return None
 
-    def _build_github_download_url(
-        self, owner: str, repo: str, tag: str, asset_name: str
-    ) -> str | None:
+    def _build_github_download_url(self, owner: str, repo: str, tag: str, asset_name: str) -> str | None:
         """Build the download URL for a GitHub release asset."""
         if tag == "latest":
             api_url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
