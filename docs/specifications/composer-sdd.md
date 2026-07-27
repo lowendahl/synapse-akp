@@ -233,11 +233,121 @@ Python 3.12+, FastAPI, Typer CLI, Pydantic v2, DuckDB, SQLite/DuckDB workflow, l
 
 ## 9.2 Enterprise profile
 
-Containerized Python, FastAPI, PostgreSQL, object storage, Temporal workflows, managed Git, pgvector/Qdrant, PostgreSQL/Neo4j graph, enterprise identity, Purview, OpenTelemetry.
+Containerized Python, FastAPI, PostgreSQL, object storage, Temporal workflows, managed Git, pgvector/Qdrant, NetworkX graph (PostgreSQL or Neo4j as optional later projection per COM016), enterprise identity, Purview, OpenTelemetry.
 
 ## 9.3 Hybrid profile
 
 Local acquisition/parsing/sensitive sources, sync approved content, managed review/release, local or enterprise compilation. Same domain contracts across all profiles.
+
+---
+
+# 9.4 Engineering Development Workflow
+
+Composer implementation follows the Synapse AKP mandatory development workflow. No step may be skipped or reordered.
+
+```
+Epic / PBI
+    ↓
+Planning (Planner Agent)
+    ↓
+Component Definition (create/update docs/components/composer/*.md)
+  - Purpose, Responsibilities, Out of Scope, Promises, Invariants
+    ↓
+Tests (write tests FIRST — they start RED)
+  - Tests honour component promises and invariants
+  - BDD-style: Given/When/Then for behaviour specification
+    ↓
+Implementation (write code to turn tests GREEN)
+    ↓
+Epic Complete Gate:
+  → Architecture Governor review
+  → Quality Agent review
+  → Test Coverage validation
+  → Design gates pass (all 5)
+    ↓
+Human Code Review
+    ↓
+Commit & merge to main
+```
+
+### Rules
+
+1. **No code without a component definition** — every module must trace to a `docs/components/composer/*.md` that declares its promises and invariants.
+2. **Tests before code** — tests are written against the component contract *before* the implementation exists. The test suite defines done.
+3. **Red → Green → Refactor** — TDD cycle. Never commit red tests.
+4. **Gate reviews are blocking** — architecture governor, quality, and test coverage agents must pass before human review is requested.
+5. **Commits only to feature branches** — main is protected; PRs require passing gates + human approval.
+
+---
+
+# 9.5 Code Standards Inheritance
+
+Composer inherits all platform code governance from G007 (Code Standards & Architecture). The following rules are non-negotiable:
+
+| Rule | Enforcement |
+|------|-------------|
+| Classes over functions — every `.py` module defines at least one class | Design gate |
+| SQL confinement — SQL strings ONLY in `queries/` or `persistence/` directories | Design gate |
+| One concept per file — domain files hold ≤4 related classes | Design gate |
+| Protocol coverage — every infrastructure class implements a protocol from `contracts/` | Design gate |
+| No abbreviations — public identifiers use full English words | Design gate |
+| Module size — all modules target <200 lines of logic code | Design gate |
+| Query object pattern — database interactions in query classes with `execute(connection)` | Code review |
+
+### Package Boundary Model
+
+Composer modules follow the same layered architecture as the compiler and runtime:
+
+```
+composer/src/synapse_composer/
+  contracts/        Protocol definitions, event types, shared types
+  domain/           Pure domain logic (no infrastructure imports)
+  infrastructure/   Adapters: persistence, model gateway, file I/O
+    persistence/
+      queries/      SQL query objects (ONLY place SQL is allowed)
+  stages/           Pipeline stage orchestrators
+  agents/           Specialist agent implementations
+```
+
+### Linting and Formatting
+
+- **Ruff** with rules: E, F, I, N, W, UP, ANN, B, SIM
+- Line length: 120 characters
+- All code must pass `ruff check` and `ruff format` before merge
+
+---
+
+# 9.6 Testing Strategy
+
+Composer testing follows established Synapse AKP testing practices.
+
+### Test Tooling
+
+- **pytest** as the test runner
+- **Hypothesis** for property-based tests on domain logic (parsing, model transformations, graph operations)
+- **Design gate tests** enforcing architecture rules (as in `runtime/tests/test_design_gates.py`)
+
+### Test Categories
+
+| Category | Scope | When |
+|----------|-------|------|
+| Unit tests | Single class/method in isolation | Every component |
+| Contract tests | Protocol implementation correctness | Every infrastructure adapter |
+| Integration tests | Multi-component workflows | Each pipeline stage |
+| Property-based tests | Domain invariants hold for all valid inputs | Core domain logic |
+| Design gate tests | Architecture rules enforced | CI, every PR |
+| BDD component tests | Given/When/Then behaviour specs | Component promises |
+| Gold standard tests | Known-answer regression | End-to-end pipeline |
+
+### Test-to-Promise Traceability
+
+Every test must trace to a promise or invariant declared in a `docs/components/composer/*.md` file. Tests that do not trace to a component specification are considered orphaned and must be either linked or removed.
+
+### Coverage
+
+- Target: >90% line coverage for domain logic
+- Target: 100% protocol implementation coverage
+- Design gates: 100% pass rate (blocking)
 
 ---
 

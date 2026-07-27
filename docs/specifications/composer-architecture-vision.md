@@ -1367,6 +1367,18 @@ Identifies conflicting, superseded, scoped, or temporally incompatible assertion
 
 Proposes navigation, grouping, page structure, and cross-links.
 
+---
+
+## Code Governance Inheritance
+
+Synapse Composer implementation is governed by the same engineering standards as all Synapse AKP components. The authoritative references are:
+
+- **G007 (Code Standards & Architecture)** — classes over functions, SQL confinement, protocol coverage, module size, no abbreviations
+- **G006 (Compiler Engineering Principles)** — compile-time correctness, determinism, ontology-first
+- **Composer SDD §9.4–9.6** — engineering workflow, code standards inheritance, and testing strategy
+
+All Composer code must pass the platform's 5 design gates before merge. No architectural exception is permitted without a new ADR approved by the Architecture Governor.
+
 ## Quality reviewer
 
 Finds unsupported claims, incomplete definitions, weak evidence, and structural defects.
