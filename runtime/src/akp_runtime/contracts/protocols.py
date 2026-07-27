@@ -16,6 +16,7 @@ from akp_runtime.contracts.mcp_models import (
     RuntimeConfigModel,
     SearchToolInput,
 )
+from akp_runtime.domain.explain_models import SynthesisResult
 from akp_runtime.domain.models import GraphEdgeHit, PackMetadata, ProvenanceStep, SearchHit, SemanticUnitRecord
 
 
@@ -143,3 +144,17 @@ class GraphService(Protocol):
     def provenance_for_object(self, object_id: str) -> tuple[ProvenanceStep, ...]: ...
     def provenance_for_unit(self, unit_id: str) -> tuple[ProvenanceStep, ...]: ...
     def provenance_for_edge(self, subject_id: str, predicate: str, object_id: str) -> tuple[ProvenanceStep, ...]: ...
+
+
+@runtime_checkable
+class SemanticReasoningClient(Protocol):
+    """Protocol for LLM-backed explanation synthesis (ADR-036, ADR-038)."""
+
+    def synthesize_explanation(
+        self,
+        concept_title: str,
+        concept_type: str,
+        semantic_units: list[SemanticUnitRecord],
+        neighbors: list[GraphEdgeHit],
+        detail_level: str,
+    ) -> SynthesisResult: ...
