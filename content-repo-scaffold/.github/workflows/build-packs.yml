@@ -45,7 +45,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: knowledge-packs
-          path: dist/*.duckdb
+          path: |
+            dist/*.akp
+            dist/*.duckdb
 
   release:
     name: Publish Release
@@ -63,7 +65,7 @@ jobs:
       - name: Generate checksums
         run: |
           cd dist
-          sha256sum *.duckdb > checksums.sha256
+          sha256sum *.akp > checksums.sha256
 
       - name: Create release
         uses: softprops/action-gh-release@v2
@@ -74,6 +76,6 @@ jobs:
             Automated build from commit ${{ github.sha }}.
             Install: `pip install akp-runtime` and configure pack source URIs.
           files: |
-            dist/mcem.duckdb
-            dist/csu.duckdb
+            dist/mcem.akp
+            dist/csu.akp
             dist/checksums.sha256

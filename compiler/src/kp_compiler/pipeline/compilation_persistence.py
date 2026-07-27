@@ -86,7 +86,74 @@ class CompilationPersistence:
             )
         )
         writer.close()
+
+        # Bundle into .akp package (ZIP with manifest + all artifacts)
+        akp_path = self._write_akp_package(output_path, pack_id, content_hash, embed_result)
+        print(f"[package] {akp_path} ({akp_path.stat().st_size / 1024:.0f} KB)")
+
         return content_hash
+
+    def _write_akp_package(
+        self,
+        output_path: Path,
+        pack_id: str,
+        content_hash: str,
+        embed_result: EmbeddingResult | None,
+    ) -> Path:
+        """Bundle .duckdb + .usearch + manifest.yaml into a single .akp ZIP file."""
+        import zipfile
+
+        import yaml
+
+        duckdb_checksum = hashlib.sha256(output_path.read_bytes()).hexdigest()
+
+        artifacts: list[dict[str, str | int]] = [
+            {
+                "file": "pack.duckdb",
+                "type": "duckdb",
+                "size_bytes": output_path.stat().st_size,
+                "sha256": duckdb_checksum,
+            }
+        ]
+
+        usearch_path = output_path.with_suffix(".usearch")
+        has_vectors = usearch_path.exists()
+        if has_vectors:
+            artifacts.append({
+                "file": "pack.usearch",
+                "type": "usearch_index",
+                "size_bytes": usearch_path.stat().st_size,
+                "sha256": hashlib.sha256(usearch_path.read_bytes()).hexdigest(),
+            })
+
+        manifest = {
+            "pack_id": pack_id,
+            "pack_format_version": 1,
+            "compiler_version": __version__,
+            "schema_version": "2.0.0",
+            "content_hash": content_hash,
+            "build_timestamp": datetime.now(UTC).isoformat(),
+            "embeddings_included": has_vectors,
+            "embedding_model": embed_result.model_name if embed_result and embed_result.vectors is not None else None,
+            "embedding_dimensions": embed_result.dimensions if embed_result and embed_result.vectors is not None else 0,
+            "artifacts": artifacts,
+            "runtime_minimum_version": "0.1.0",
+        }
+
+        akp_path = output_path.with_suffix(".akp")
+        with zipfile.ZipFile(akp_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            # Write manifest.yaml first
+            manifest_yaml = yaml.dump(manifest, default_flow_style=False, sort_keys=False)
+            archive.writestr("manifest.yaml", manifest_yaml)
+
+            # Write DuckDB
+            archive.write(output_path, "pack.duckdb")
+
+            # Write vector index if present
+            if has_vectors:
+                archive.write(usearch_path, "pack.usearch")
+
+        return akp_path
 
     def report(
         self,
