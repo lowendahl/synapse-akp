@@ -17,6 +17,7 @@ from pydantic import ValidationError
 
 from akp_runtime.contracts.errors import ConfigurationError
 from akp_runtime.contracts.mcp_models import RuntimeConfigModel
+from akp_runtime.contracts.protocols import ConfigLoader
 
 _ENVIRONMENT_PREFIX = "AKP_"
 
@@ -24,7 +25,7 @@ _BOOLEAN_TRUTHY = frozenset({"true", "1", "yes"})
 _BOOLEAN_FALSY = frozenset({"false", "0", "no"})
 
 
-class YamlConfigLoader:
+class YamlConfigLoader(ConfigLoader):
     """Loads runtime configuration from env, YAML, and defaults.
 
     Precedence: env vars (AKP_*) > YAML file > Pydantic defaults.
@@ -92,7 +93,7 @@ class YamlConfigLoader:
         overrides: dict[str, Any] = {}
         for key, value in os.environ.items():
             if key.startswith(_ENVIRONMENT_PREFIX):
-                config_key = key[len(_ENVIRONMENT_PREFIX):].lower()
+                config_key = key[len(_ENVIRONMENT_PREFIX) :].lower()
                 overrides[config_key] = self._parse_environment_value(value)
         return overrides
 

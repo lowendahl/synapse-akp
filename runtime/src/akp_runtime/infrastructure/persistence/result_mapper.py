@@ -6,10 +6,11 @@ Why: Isolates mapping logic from query execution and connection management.
 
 from __future__ import annotations
 
+from akp_runtime.contracts.protocols import ResultMapper
 from akp_runtime.domain.models import ProvenanceStep, SearchHit, SemanticUnitRecord
 
 
-class SearchHitMapper:
+class SearchHitMapper(ResultMapper):
     """Maps raw query rows to domain SearchHit objects."""
 
     def __init__(self, pack_id: str, pack_version: str, provenance_step: ProvenanceStep) -> None:

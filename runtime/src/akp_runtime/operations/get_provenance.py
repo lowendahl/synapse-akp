@@ -37,8 +37,11 @@ class ProvenanceRetrievalOperation:
 
         provenance = [
             ProvenanceStepModel(
-                layer=s.layer, identifier=s.identifier, origin=s.origin,
-                source_path=s.source_path, pack_id=s.pack_id,
+                layer=s.layer,
+                identifier=s.identifier,
+                origin=s.origin,
+                source_path=s.source_path,
+                pack_id=s.pack_id,
                 pack_version=s.pack_version,
             )
             for s in steps

@@ -49,91 +49,110 @@ class OntologyValidator:
 
     def _check_id_format(self, obj: KnowledgeObject, diagnostics: list[Diagnostic]) -> None:
         if obj.id and not self._ontology.is_valid_id(obj.id):
-            diagnostics.append(Diagnostic(
-                severity=Severity.ERROR,
-                source_file=obj.source_path,
-                message=f"Invalid ID format: '{obj.id}' — expected pattern: {self._ontology.id_pattern}",
-                stage="validate",
-                object_id=obj.id,
-            ))
+            diagnostics.append(
+                Diagnostic(
+                    severity=Severity.ERROR,
+                    source_file=obj.source_path,
+                    message=f"Invalid ID format: '{obj.id}' — expected pattern: {self._ontology.id_pattern}",
+                    stage="validate",
+                    object_id=obj.id,
+                )
+            )
 
     def _check_id_present(self, obj: KnowledgeObject, diagnostics: list[Diagnostic]) -> None:
         if not obj.id:
-            diagnostics.append(Diagnostic(
-                severity=Severity.WARNING,
-                source_file=obj.source_path,
-                message=f"Missing stable ID for object '{obj.title}'",
-                stage="validate",
-            ))
+            diagnostics.append(
+                Diagnostic(
+                    severity=Severity.WARNING,
+                    source_file=obj.source_path,
+                    message=f"Missing stable ID for object '{obj.title}'",
+                    stage="validate",
+                )
+            )
 
     def _check_type_valid(self, obj: KnowledgeObject, diagnostics: list[Diagnostic]) -> None:
         if not self._ontology.is_valid_type(obj.type.value):
-            diagnostics.append(Diagnostic(
-                severity=Severity.ERROR,
-                source_file=obj.source_path,
-                message=f"Unknown type '{obj.type.value}' — not in ontology",
-                stage="validate",
-                object_id=obj.id,
-            ))
+            diagnostics.append(
+                Diagnostic(
+                    severity=Severity.ERROR,
+                    source_file=obj.source_path,
+                    message=f"Unknown type '{obj.type.value}' — not in ontology",
+                    stage="validate",
+                    object_id=obj.id,
+                )
+            )
 
     def _check_required_fields(self, obj: KnowledgeObject, diagnostics: list[Diagnostic]) -> None:
         required = self._ontology.get_required_fields(obj.type.value)
         for field_name in required:
             if field_name == "id" and not obj.id:
-                diagnostics.append(Diagnostic(
-                    severity=Severity.ERROR,
-                    source_file=obj.source_path,
-                    message="Required field 'id' is missing",
-                    stage="validate",
-                    object_id=obj.id or obj.title,
-                ))
+                diagnostics.append(
+                    Diagnostic(
+                        severity=Severity.ERROR,
+                        source_file=obj.source_path,
+                        message="Required field 'id' is missing",
+                        stage="validate",
+                        object_id=obj.id or obj.title,
+                    )
+                )
             elif field_name == "title" and not obj.title:
-                diagnostics.append(Diagnostic(
-                    severity=Severity.ERROR,
-                    source_file=obj.source_path,
-                    message="Required field 'title' is missing",
-                    stage="validate",
-                    object_id=obj.id,
-                ))
+                diagnostics.append(
+                    Diagnostic(
+                        severity=Severity.ERROR,
+                        source_file=obj.source_path,
+                        message="Required field 'title' is missing",
+                        stage="validate",
+                        object_id=obj.id,
+                    )
+                )
             elif field_name == "description" and not obj.description:
-                diagnostics.append(Diagnostic(
-                    severity=Severity.WARNING,
-                    source_file=obj.source_path,
-                    message="Required field 'description' is missing",
-                    stage="validate",
-                    object_id=obj.id,
-                ))
+                diagnostics.append(
+                    Diagnostic(
+                        severity=Severity.WARNING,
+                        source_file=obj.source_path,
+                        message="Required field 'description' is missing",
+                        stage="validate",
+                        object_id=obj.id,
+                    )
+                )
 
     def _check_predicates(self, obj: KnowledgeObject, diagnostics: list[Diagnostic]) -> None:
         for rel in obj.relationships:
             if rel.predicate != "references" and not self._ontology.is_valid_predicate(rel.predicate):
-                diagnostics.append(Diagnostic(
-                    severity=Severity.ERROR,
-                    source_file=obj.source_path,
-                    message=f"Unknown predicate '{rel.predicate}'",
-                    stage="validate",
-                    object_id=obj.id,
-                ))
+                diagnostics.append(
+                    Diagnostic(
+                        severity=Severity.ERROR,
+                        source_file=obj.source_path,
+                        message=f"Unknown predicate '{rel.predicate}'",
+                        stage="validate",
+                        object_id=obj.id,
+                    )
+                )
 
     def _check_duplicate_ids(
-        self, objects: list[KnowledgeObject], diagnostics: list[Diagnostic],
+        self,
+        objects: list[KnowledgeObject],
+        diagnostics: list[Diagnostic],
     ) -> None:
         seen_ids: dict[str, str] = {}
         for obj in objects:
             if obj.id:
                 if obj.id in seen_ids:
-                    diagnostics.append(Diagnostic(
-                        severity=Severity.ERROR,
-                        source_file=obj.source_path,
-                        message=f"Duplicate ID '{obj.id}' — first seen in {seen_ids[obj.id]}",
-                        stage="validate",
-                        object_id=obj.id,
-                    ))
+                    diagnostics.append(
+                        Diagnostic(
+                            severity=Severity.ERROR,
+                            source_file=obj.source_path,
+                            message=f"Duplicate ID '{obj.id}' — first seen in {seen_ids[obj.id]}",
+                            stage="validate",
+                            object_id=obj.id,
+                        )
+                    )
                 else:
                     seen_ids[obj.id] = obj.source_path
 
 
 # Backward-compatible module-level functions
+
 
 def validate_object(obj: KnowledgeObject, ontology: Ontology) -> list[Diagnostic]:
     """Validate a single object against the ontology."""

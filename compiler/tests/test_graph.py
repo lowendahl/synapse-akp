@@ -1,4 +1,5 @@
 """Unit tests for the graph stage."""
+
 from kp_compiler.domain.models import (
     KnowledgeObject,
     ObjectType,

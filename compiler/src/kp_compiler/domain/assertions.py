@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class AssertionKind(str, Enum):
+class AssertionKind(StrEnum):
     """Built-in assertion function identifiers."""
 
     ALIAS_OWNER_IN_TOP_K = "alias_owner_in_top_k"

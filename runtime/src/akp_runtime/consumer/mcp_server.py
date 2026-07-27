@@ -7,6 +7,14 @@ composition root established in pipeline/bootstrap.py.
 from __future__ import annotations
 
 
+class McpServerApplication:
+    """Runtime consumer entry-point wrapper."""
+
+    def run(self) -> None:
+        """Parse --config, bootstrap runtime, run MCP stdio server."""
+        raise NotImplementedError("PBI #11")
+
+
 def main() -> None:
-    """Parse --config, bootstrap runtime, run MCP stdio server."""
-    raise NotImplementedError("PBI #11")
+    """Run the MCP server application."""
+    McpServerApplication().run()

@@ -1,6 +1,6 @@
 """Tests for enrichment stage (ADR-012 — NLP enrichment)."""
 
-from kp_compiler.domain.models import KnowledgeObject, Relationship
+from kp_compiler.domain.models import KnowledgeObject
 from kp_compiler.stages.enrich import (
     detect_fuzzy_duplicates,
     enrich_corpus,

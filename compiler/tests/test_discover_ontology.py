@@ -93,9 +93,16 @@ class TestGenerateOntologyYaml:
 
     def test_generates_valid_yaml_structure(self) -> None:
         result = OntologyDiscoveryResult(
-            types={"Metric": __import__("kp_compiler.stages.discover_ontology", fromlist=["DiscoveredType"]).DiscoveredType(
-                name="Metric", observed_count=5, domains={"csu"}, observed_fields={"id", "title", "type"},
-            )},
+            types={
+                "Metric": __import__(
+                    "kp_compiler.stages.discover_ontology", fromlist=["DiscoveredType"]
+                ).DiscoveredType(
+                    name="Metric",
+                    observed_count=5,
+                    domains={"csu"},
+                    observed_fields={"id", "title", "type"},
+                )
+            },
             predicates={},
             domains={"csu"},
             id_prefixes={"csu"},

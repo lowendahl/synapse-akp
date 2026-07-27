@@ -9,26 +9,53 @@ from __future__ import annotations
 from pathlib import Path
 
 from akp_runtime.contracts.errors import UnsupportedSchemaVersion
+from akp_runtime.contracts.protocols import ManifestParserProtocol
 from akp_runtime.domain.models import PackMetadata
 
 REQUIRED_TABLES = ("objects", "semantic_units", "aliases", "edges", "manifest")
 
-REQUIRED_MANIFEST_KEYS = frozenset({
-    "pack_id", "pack_version", "schema_version", "ontology_version",
-    "compiler_version", "build_timestamp", "source_file_count", "object_count",
-    "node_count", "edge_count", "semantic_unit_count", "alias_count",
-    "bm25_vocab_size", "embedding_model", "embedding_dimensions",
-    "cross_pack_refs", "content_hash", "error_count", "warning_count",
-})
+REQUIRED_MANIFEST_KEYS = frozenset(
+    {
+        "pack_id",
+        "pack_version",
+        "schema_version",
+        "ontology_version",
+        "compiler_version",
+        "build_timestamp",
+        "source_file_count",
+        "object_count",
+        "node_count",
+        "edge_count",
+        "semantic_unit_count",
+        "alias_count",
+        "bm25_vocab_size",
+        "embedding_model",
+        "embedding_dimensions",
+        "cross_pack_refs",
+        "content_hash",
+        "error_count",
+        "warning_count",
+    }
+)
 
-_INT_MANIFEST_KEYS = frozenset({
-    "source_file_count", "object_count", "node_count", "edge_count",
-    "semantic_unit_count", "alias_count", "bm25_vocab_size",
-    "embedding_dimensions", "cross_pack_refs", "error_count", "warning_count",
-})
+_INT_MANIFEST_KEYS = frozenset(
+    {
+        "source_file_count",
+        "object_count",
+        "node_count",
+        "edge_count",
+        "semantic_unit_count",
+        "alias_count",
+        "bm25_vocab_size",
+        "embedding_dimensions",
+        "cross_pack_refs",
+        "error_count",
+        "warning_count",
+    }
+)
 
 
-class ManifestParser:
+class ManifestParser(ManifestParserProtocol):
     """Parses and validates manifest key-value pairs into PackMetadata."""
 
     @staticmethod

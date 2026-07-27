@@ -21,16 +21,77 @@ class AliasRules(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     stopwords: frozenset[str] = Field(
-        default_factory=lambda: frozenset({
-            "this", "the", "a", "an", "it", "is", "are", "was", "were",
-            "that", "with", "for", "from", "into", "also", "but", "not",
-            "can", "will", "has", "had", "have", "been", "does", "do",
-            "each", "every", "all", "any", "some", "more", "most", "much",
-            "such", "than", "then", "when", "how", "what", "which", "who",
-            "its", "our", "you", "your", "they", "them", "we", "us",
-            "be", "by", "on", "at", "to", "in", "of", "or", "no", "so",
-            "if", "up", "out", "off", "own", "too", "very", "just",
-        }),
+        default_factory=lambda: frozenset(
+            {
+                "this",
+                "the",
+                "a",
+                "an",
+                "it",
+                "is",
+                "are",
+                "was",
+                "were",
+                "that",
+                "with",
+                "for",
+                "from",
+                "into",
+                "also",
+                "but",
+                "not",
+                "can",
+                "will",
+                "has",
+                "had",
+                "have",
+                "been",
+                "does",
+                "do",
+                "each",
+                "every",
+                "all",
+                "any",
+                "some",
+                "more",
+                "most",
+                "much",
+                "such",
+                "than",
+                "then",
+                "when",
+                "how",
+                "what",
+                "which",
+                "who",
+                "its",
+                "our",
+                "you",
+                "your",
+                "they",
+                "them",
+                "we",
+                "us",
+                "be",
+                "by",
+                "on",
+                "at",
+                "to",
+                "in",
+                "of",
+                "or",
+                "no",
+                "so",
+                "if",
+                "up",
+                "out",
+                "off",
+                "own",
+                "too",
+                "very",
+                "just",
+            }
+        ),
         description="Aliases matching these tokens are rejected silently.",
     )
     min_length: int = Field(
@@ -57,7 +118,10 @@ class AliasRules(BaseModel):
     @classmethod
     def _compile_patterns(cls, v: list[str]) -> list[str]:
         for p in v:
-            re.compile(p)
+            try:
+                re.compile(p)
+            except re.error as exc:
+                raise ValueError(f"Invalid blocked pattern: {p}") from exc
         return v
 
     def is_blocked(self, alias: str) -> tuple[bool, str]:

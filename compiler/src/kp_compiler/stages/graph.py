@@ -82,13 +82,15 @@ class GraphBuilder:
         for orphan_id in orphans:
             node_data = graph.nodes[orphan_id]
             if node_data.get("type") not in ("Index", "Log"):
-                diagnostics.append(Diagnostic(
-                    severity=Severity.WARNING,
-                    source_file=node_data.get("source_path", ""),
-                    message="Orphan node — no incoming or outgoing edges",
-                    stage="graph",
-                    object_id=orphan_id,
-                ))
+                diagnostics.append(
+                    Diagnostic(
+                        severity=Severity.WARNING,
+                        source_file=node_data.get("source_path", ""),
+                        message="Orphan node — no incoming or outgoing edges",
+                        stage="graph",
+                        object_id=orphan_id,
+                    )
+                )
 
         depends_subgraph = nx.DiGraph()
         for u, v, data in graph.edges(data=True):
@@ -97,22 +99,26 @@ class GraphBuilder:
 
         cycles = list(nx.simple_cycles(depends_subgraph))
         for cycle in cycles:
-            diagnostics.append(Diagnostic(
-                severity=Severity.ERROR,
-                source_file="",
-                message=f"Cycle in 'depends_on': {' → '.join(cycle)}",
-                stage="graph",
-            ))
+            diagnostics.append(
+                Diagnostic(
+                    severity=Severity.ERROR,
+                    source_file="",
+                    message=f"Cycle in 'depends_on': {' → '.join(cycle)}",
+                    stage="graph",
+                )
+            )
 
         undirected = graph.to_undirected()
         components = list(nx.connected_components(undirected))
         if len(components) > 2:
-            diagnostics.append(Diagnostic(
-                severity=Severity.INFO,
-                source_file="",
-                message=f"Graph has {len(components)} disconnected components",
-                stage="graph",
-            ))
+            diagnostics.append(
+                Diagnostic(
+                    severity=Severity.INFO,
+                    source_file="",
+                    message=f"Graph has {len(components)} disconnected components",
+                    stage="graph",
+                )
+            )
 
         return diagnostics
 
@@ -141,28 +147,32 @@ class GraphBuilder:
     def _export_nodes(self, graph: nx.DiGraph, metrics: dict) -> list[GraphNode]:
         nodes: list[GraphNode] = []
         for node_id, data in graph.nodes(data=True):
-            nodes.append(GraphNode(
-                id=node_id,
-                type=data.get("type", ""),
-                title=data.get("title", ""),
-                domain=data.get("domain", ""),
-                source_path=data.get("source_path", ""),
-                pagerank=metrics["pagerank"].get(node_id, 0.0),
-                in_degree=metrics["in_degree"].get(node_id, 0),
-                out_degree=metrics["out_degree"].get(node_id, 0),
-            ))
+            nodes.append(
+                GraphNode(
+                    id=node_id,
+                    type=data.get("type", ""),
+                    title=data.get("title", ""),
+                    domain=data.get("domain", ""),
+                    source_path=data.get("source_path", ""),
+                    pagerank=metrics["pagerank"].get(node_id, 0.0),
+                    in_degree=metrics["in_degree"].get(node_id, 0),
+                    out_degree=metrics["out_degree"].get(node_id, 0),
+                )
+            )
         return nodes
 
     def _export_edges(self, graph: nx.DiGraph) -> list[GraphEdge]:
         edges: list[GraphEdge] = []
         for u, v, data in graph.edges(data=True):
-            edges.append(GraphEdge(
-                subject_id=u,
-                object_id=v,
-                predicate=data.get("predicate", "references"),
-                origin=data.get("origin", "authored"),
-                confidence=data.get("confidence"),
-            ))
+            edges.append(
+                GraphEdge(
+                    subject_id=u,
+                    object_id=v,
+                    predicate=data.get("predicate", "references"),
+                    origin=data.get("origin", "authored"),
+                    confidence=data.get("confidence"),
+                )
+            )
         return edges
 
 

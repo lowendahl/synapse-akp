@@ -304,10 +304,7 @@ def test_optional_dependency_imports_are_isolated(
         imported = _imported_roots(py_file)
         if forbidden_module in imported:
             rel = py_file.relative_to(SOURCE_ROOT)
-            allowed = any(
-                rel == p or str(rel).startswith(str(p))
-                for p in allowed_paths
-            )
+            allowed = any(rel == p or str(rel).startswith(str(p)) for p in allowed_paths)
             assert allowed, f"{rel} must not import {forbidden_module}"
 
 

@@ -83,3 +83,63 @@ class ExpandGraphOperation(Protocol):
 @runtime_checkable
 class GetProvenanceOperation(Protocol):
     def get(self, request: GetProvenanceToolInput) -> tuple[ProvenanceStep, ...]: ...
+
+
+# ─── Infrastructure Protocols ───────────────────────────────────────────────
+
+
+@runtime_checkable
+class QueryObjectProtocol(Protocol):
+    """Contract for all query objects in the persistence layer."""
+
+    def sql(self) -> str: ...
+    def parameters(self) -> list[object]: ...
+    def map_results(self, rows: list[tuple]) -> object: ...
+
+
+@runtime_checkable
+class QueryExecutorProtocol(Protocol):
+    """Contract for executing query objects against a connection."""
+
+    def execute(self, query: QueryObjectProtocol) -> object: ...
+    def mark_closed(self) -> None: ...
+
+
+@runtime_checkable
+class SchemaValidator(Protocol):
+    """Contract for validating pack schema and building metadata."""
+
+    def build_metadata(self) -> PackMetadata: ...
+
+
+@runtime_checkable
+class ResultMapper(Protocol):
+    """Contract for mapping raw query rows to domain objects."""
+
+    def from_object_row(self, row: tuple) -> SearchHit: ...
+
+
+@runtime_checkable
+class ProvenanceFactory(Protocol):
+    """Contract for building provenance steps."""
+
+    def pack_step(self, metadata: PackMetadata) -> ProvenanceStep: ...
+
+
+@runtime_checkable
+class ManifestParserProtocol(Protocol):
+    """Contract for parsing manifest key-value pairs into metadata."""
+
+    def build_metadata(self, manifest: dict[str, str], pack_path: Path) -> PackMetadata: ...
+
+
+@runtime_checkable
+class GraphService(Protocol):
+    """Contract for graph traversal and provenance queries."""
+
+    def graph_neighbors(
+        self, object_id: str, hops: int, predicates: tuple[str, ...], limit: int
+    ) -> list[GraphEdgeHit]: ...
+    def provenance_for_object(self, object_id: str) -> tuple[ProvenanceStep, ...]: ...
+    def provenance_for_unit(self, unit_id: str) -> tuple[ProvenanceStep, ...]: ...
+    def provenance_for_edge(self, subject_id: str, predicate: str, object_id: str) -> tuple[ProvenanceStep, ...]: ...

@@ -1,4 +1,5 @@
 """Unit tests for the parser stage."""
+
 import pytest
 
 from kp_compiler.contracts.errors import OntologyViolation

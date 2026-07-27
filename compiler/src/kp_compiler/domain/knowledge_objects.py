@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from kp_compiler.domain.core_models import Provenance, Relationship, Section
@@ -24,7 +22,7 @@ class KnowledgeObject(BaseModel):
     domain: str = ""
     status: str = "stable"
     source_path: str = ""
-    provenance: Optional[Provenance] = None
+    provenance: Provenance | None = None
     relationships: list[Relationship] = Field(default_factory=list)
     sections: list[Section] = Field(default_factory=list)
     properties: dict[str, str | int | float | bool | list[str]] = Field(default_factory=dict)
@@ -34,18 +32,18 @@ class KnowledgeObject(BaseModel):
 class MetricObject(KnowledgeObject):
     """Extended model for Metric and KPI type objects."""
 
-    formula: Optional[str] = None
-    classification: Optional[Classification] = None
+    formula: str | None = None
+    classification: Classification | None = None
     thresholds: dict[str, float] | None = None
-    measurement_paradigm: Optional[MeasurementParadigm] = None
+    measurement_paradigm: MeasurementParadigm | None = None
     evidence_sources: list[str] = Field(default_factory=list)
 
 
 class EvidenceSourceObject(KnowledgeObject):
     """Extended model for Evidence Source type objects."""
 
-    platform: Optional[str] = None
-    access_pattern: Optional[str] = None
+    platform: str | None = None
+    access_pattern: str | None = None
     artifact_ids: list[str] = Field(default_factory=list)
 
 

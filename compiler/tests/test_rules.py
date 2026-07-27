@@ -6,21 +6,19 @@ from pathlib import Path
 
 import duckdb
 import pytest
+from pydantic import ValidationError
 
 from kp_compiler.domain.rules import (
     AliasRules,
     AssertionKind,
     OutcomeAssertion,
     PackRules,
-    QualityThresholds,
 )
 from kp_compiler.infrastructure.rules_loader import load_pack_rules
 from kp_compiler.stages.outcome_validator import (
-    OutcomeReport,
     run_assertion,
     validate_outcomes,
 )
-
 
 # ── AliasRules unit tests ──────────────────────────────────────────────────
 
@@ -126,12 +124,12 @@ class TestPackRules:
         assert rules.quality_thresholds.fail_on_error is False
 
     def test_invalid_pattern_raises(self) -> None:
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):
             AliasRules(blocked_patterns=["[invalid"])
 
     def test_frozen_model(self) -> None:
         rules = PackRules.default()
-        with pytest.raises(Exception):
+        with pytest.raises((TypeError, ValidationError)):
             rules.version = "2.0"  # type: ignore[misc]
 
 
@@ -283,13 +281,15 @@ class TestOutcomeValidator:
 
     def test_validate_outcomes_full(self, tmp_path: Path) -> None:
         pack = _make_test_pack(tmp_path)
-        rules = PackRules.model_validate({
-            "outcome_assertions": [
-                {"name": "alias-check", "rule": "alias_owner_in_top_k", "params": {"k": 3}},
-                {"name": "tag-check", "rule": "max_tag_coverage", "params": {"threshold": 1.0}},
-            ],
-            "quality_thresholds": {"min_assertion_pass_rate": 1.0},
-        })
+        rules = PackRules.model_validate(
+            {
+                "outcome_assertions": [
+                    {"name": "alias-check", "rule": "alias_owner_in_top_k", "params": {"k": 3}},
+                    {"name": "tag-check", "rule": "max_tag_coverage", "params": {"threshold": 1.0}},
+                ],
+                "quality_thresholds": {"min_assertion_pass_rate": 1.0},
+            }
+        )
         report = validate_outcomes(pack, rules)
         assert report.passed is True
         assert report.pass_rate == 1.0
@@ -314,9 +314,11 @@ class TestEnrichmentGate:
             raw_body="This Object (THIS) is important",
             sections=[Section(heading="Body", content="Content here", level=2)],
         )
-        rules = PackRules.model_validate({
-            "alias_rules": {"stopwords": ["this"]},
-        })
+        rules = PackRules.model_validate(
+            {
+                "alias_rules": {"stopwords": ["this"]},
+            }
+        )
         result = enrich_corpus([obj], rules)
         aliases_lower = [a.lower() for a in result.objects[0].aliases]
         assert "this" not in aliases_lower

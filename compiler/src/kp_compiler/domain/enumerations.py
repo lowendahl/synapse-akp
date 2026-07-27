@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class ObjectType(str, Enum):
+class ObjectType(StrEnum):
     """Allowed object types per ontology.yaml."""
 
     FRAMEWORK = "Framework"
@@ -37,7 +37,7 @@ class ObjectType(str, Enum):
     LOG = "Log"
 
 
-class Origin(str, Enum):
+class Origin(StrEnum):
     """How a relationship or object was created."""
 
     AUTHORED = "authored"
@@ -46,14 +46,14 @@ class Origin(str, Enum):
     GENERATED = "generated"
 
 
-class MeasurementParadigm(str, Enum):
+class MeasurementParadigm(StrEnum):
     """How a metric is measured."""
 
     SNAPSHOT = "snapshot"
     REALTIME = "realtime"
 
 
-class Classification(str, Enum):
+class Classification(StrEnum):
     """KPI classification."""
 
     LEADING = "leading"
