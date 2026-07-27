@@ -3,6 +3,7 @@ type: Process
 title: Existing Deals & Renewals Motion (Motion 2)
 id: csu.process.existing-deals-renewals-motion-motion-2
 description: Improving unhealthy usage and protecting renewals through structured intervention.
+aliases: [Customer Health, Revenue at Risk, Motion 2, Existing Deals]
 tags: [csu, process, usage, existing-deals, renewals, motion-2]
 relationships:
   - predicate: operationalizes

@@ -22,6 +22,13 @@ class PackCompiler:
         self._projection = CompilationProjection()
         self._persistence = CompilationPersistence()
 
+    def _inject_resolution_roles(self, objects: list, ontology: "Ontology") -> None:
+        """Stamp each object's properties with its ontology-declared resolution_role."""
+        for obj in objects:
+            role = ontology.get_resolution_role(obj.type.value)
+            if role != "neutral":
+                obj.properties["resolution_role"] = role
+
     def compile_pack(
         self,
         source_root: Path,
@@ -41,6 +48,7 @@ class PackCompiler:
         self._preparation.maybe_discover_ontology(discover_ontology, source_files, source_root, ontology_path)
         ontology = self._preparation.load_ontology(ontology_path, source_files, source_root)
         objects, diagnostics = self._preparation.parse_sources(source_files, source_root, bus)
+        self._inject_resolution_roles(objects, ontology)
         validation_diagnostics, errors, warnings = self._projection.validate(objects, ontology, bus)
         diagnostics.extend(validation_diagnostics)
         objects, enrich_diagnostics = self._projection.enrich(objects, active_rules, bus)

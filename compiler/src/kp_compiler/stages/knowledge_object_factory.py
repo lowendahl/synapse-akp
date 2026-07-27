@@ -61,6 +61,7 @@ class KnowledgeObjectFactory:
             "title": frontmatter.get("title", ""),
             "description": frontmatter.get("description", ""),
             "aliases": frontmatter.get("aliases", []) or [],
+            "source_aliases": list(frontmatter.get("aliases", []) or []),
             "tags": frontmatter.get("tags", []) or [],
             "domain": self.infer_domain(source_path),
             "status": frontmatter.get("status", "stable"),

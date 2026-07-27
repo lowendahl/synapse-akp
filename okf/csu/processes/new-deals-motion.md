@@ -3,6 +3,7 @@ type: Process
 title: New Deals Motion (Motion 1)
 id: csu.process.new-deals-motion-motion-1
 description: Capturing usage intent during the sales process and transitioning execution to CSU.
+aliases: [Job2, Job 2, Motion 1, New Deals]
 tags: [csu, process, usage, new-deals, motion-1]
 relationships:
   - predicate: operationalizes

@@ -33,6 +33,7 @@ class ObjectTypeSpec:
     required_fields: list[str] = field(default_factory=list)
     optional_fields: list[str] = field(default_factory=list)
     domains: list[str] = field(default_factory=list)
+    resolution_role: str = "neutral"
 
 
 @dataclass
@@ -55,6 +56,7 @@ class Ontology:
                 required_fields=spec.get("required_fields", []),
                 optional_fields=spec.get("optional_fields", []),
                 domains=spec.get("domains", []),
+                resolution_role=spec.get("resolution_role", "neutral"),
             )
 
         predicates: dict[str, PredicateSpec] = {}
@@ -118,3 +120,11 @@ class Ontology:
         if spec:
             return spec.required_fields
         return []
+
+    def get_resolution_role(self, type_name: str) -> str:
+        """Get the resolution role for a given type (concept/measurement/evidence/neutral)."""
+        key = type_name.replace(" ", "_")
+        spec = self.object_types.get(type_name) or self.object_types.get(key)
+        if spec:
+            return spec.resolution_role
+        return "neutral"

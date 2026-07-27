@@ -10,7 +10,13 @@ either through LLM synthesis or structured fallback assembly.
 
 ## Responsibilities
 
-- Resolve a natural-language query or concept identifier to a pack concept
+- Resolve a natural-language query or concept identifier to a pack concept,
+  preferring concept-role types over measurement or evidence types (ADR-039)
+- When the resolved concept has related measurement and evidence objects,
+  compose across them to build a multi-faceted explanation
+- Structure the explanation like a professional report: lead with the concept
+  (what it IS), then measurements (how it's tracked), then evidence (how to
+  observe it)
 - Retrieve the concept's semantic units and graph neighbors for context
 - Delegate prose synthesis to a reasoning client when available
 - Assemble a structured Markdown fallback when no reasoning client is present
@@ -55,6 +61,15 @@ either through LLM synthesis or structured fallback assembly.
 - **P-EXP-008**: Related concepts from graph neighbors are included as
   context in the explanation, referenced by title rather than raw object
   identifiers.
+- **P-EXP-009**: When an alias matches multiple objects, the operation
+  resolves to the one with the highest-priority resolution role as declared
+  in the ontology (concept > measurement > evidence > neutral).
+- **P-EXP-010**: When the resolved concept has `measured_by` or
+  `evidenced_by` relationships, the explanation includes their semantic
+  units as additional facets, clearly attributed and ordered: concept first,
+  then measurements, then evidence.
+- **P-EXP-011**: The multi-faceted composition follows at most one hop from
+  the resolved concept. It does not recursively expand the graph.
 
 ## Invariants
 
@@ -84,6 +99,8 @@ either through LLM synthesis or structured fallback assembly.
 
 - **ADR-038**: Defines the explain operation, detail levels, fallback
   strategy, and output contract
+- **ADR-039**: Defines concept-centric resolution (ontology-declared roles)
+  and multi-faceted composition (concept → measurement → evidence order)
 - **ADR-036**: SemanticReasoningClient protocol — synthesis delegates through
   this protocol
 - **ADR-029**: LLM integration is protocol-based, provider-neutral

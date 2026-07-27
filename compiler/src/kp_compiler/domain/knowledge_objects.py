@@ -18,6 +18,7 @@ class KnowledgeObject(BaseModel):
     title: str
     description: str = ""
     aliases: list[str] = Field(default_factory=list)
+    source_aliases: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
     domain: str = ""
     status: str = "stable"

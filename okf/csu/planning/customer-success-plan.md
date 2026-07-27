@@ -3,6 +3,7 @@ type: Planning Artifact
 title: Customer Success Plan (CSP)
 id: csu.planning.customer-success-plan-csp
 description: The primary execution artifact aligning committed milestones, adoption targets, and delivery activities to customer business outcomes.
+aliases: [CSP, Customer Success Plan, Success Plan]
 tags: [csu, planning, csp, execution, milestones, outcomes]
 relationships:
   - predicate: operationalizes

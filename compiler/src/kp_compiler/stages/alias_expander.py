@@ -50,17 +50,16 @@ class AliasExpander:
             return not blocked
 
         for acronym, expansion in KnownAcronymCatalog.VALUES.items():
-            if acronym.lower() in obj.title.lower() or acronym.lower() in existing:
+            # Match acronym only as whole word in title (not substring of another word)
+            title_match = bool(re.search(r'\b' + re.escape(acronym) + r'\b', obj.title, re.IGNORECASE))
+            if title_match or acronym.lower() in existing:
                 for alias, source in ((expansion, "acronym-expansion"), (acronym, "acronym")):
                     if alias.lower() not in existing and allow(alias, source):
                         aliases.append(alias)
                         existing.add(alias.lower())
                         count += 1
 
-        for acronym, expansion in self.extract_acronyms_from_text(obj.raw_body):
-            for alias, source in ((acronym, "body-acronym"), (expansion, "body-expansion")):
-                if alias.lower() not in existing and allow(alias, source):
-                    aliases.append(alias)
-                    existing.add(alias.lower())
-                    count += 1
+        # Body-text acronym mentions are NOT aliases — they represent references
+        # to other concepts. These are handled separately as edge discovery.
+        return aliases, count, diagnostics
         return aliases, count, diagnostics

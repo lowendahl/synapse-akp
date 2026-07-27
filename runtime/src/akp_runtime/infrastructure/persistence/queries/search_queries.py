@@ -12,23 +12,41 @@ from akp_runtime.infrastructure.persistence.queries.base import PackQuery
 
 
 class ExactAliasMatchQuery(PackQuery[list[tuple]]):
-    """Find objects by exact alias match."""
+    """Find objects by exact alias match, ordered by resolution_role priority.
+
+    Tie-breaking: role > explicit-over-tag > title contains alias as word boundary > alphabetical.
+    """
+
+    _ROLE_PRIORITY = (
+        "CASE json_extract_string(o.properties, '$.resolution_role') "
+        "WHEN 'concept' THEN 1 WHEN 'measurement' THEN 2 "
+        "WHEN 'evidence' THEN 3 ELSE 4 END"
+    )
+    _ALIAS_TYPE_PRIORITY = "CASE a.alias_type WHEN 'author' THEN 1 WHEN 'explicit' THEN 2 WHEN 'title' THEN 2 WHEN 'tag' THEN 3 ELSE 4 END"
 
     def __init__(self, alias: str, limit: int) -> None:
         self._alias = alias
         self._limit = limit
 
     def sql(self) -> str:
-        return """
+        return f"""
             SELECT a.canonical_id, o.type, o.title, o.description, o.domain, o.source_path
             FROM aliases a
             JOIN objects o ON a.canonical_id = o.id
             WHERE LOWER(a.alias) = LOWER(?)
+            ORDER BY
+                {self._ROLE_PRIORITY},
+                {self._ALIAS_TYPE_PRIORITY},
+                CASE WHEN LOWER(o.title) = LOWER(?) THEN 0
+                     WHEN o.title ILIKE ? OR o.title ILIKE ? THEN 1
+                     ELSE 2 END,
+                o.title
             LIMIT ?
         """
 
     def parameters(self) -> list[Any]:
-        return [self._alias, self._limit]
+        # Prefer title = alias, then title contains "(ALIAS)" or "ALIAS —", else deprioritize
+        return [self._alias, self._alias, f"%({self._alias})%", f"{self._alias} %", self._limit]
 
     def map_results(self, rows: list[tuple]) -> list[tuple]:
         return rows
