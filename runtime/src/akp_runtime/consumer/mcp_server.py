@@ -41,17 +41,22 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[PackContext]:
     loader = YamlConfigLoader()
     config = loader.load(config_path)
 
+    from akp_runtime.infrastructure.pack_source_resolver import PackResolutionError, PackSourceResolver
+
+    resolver = PackSourceResolver(default_cache_directory=config.pack_cache_directory)
     pack_loader = DuckDBPackLoader()
     packs: dict[str, DuckDBLoadedPack] = {}
 
     for binding in config.packs:
-        if not binding.path.exists():
+        try:
+            resolved_path = resolver.resolve(binding)
+        except PackResolutionError as error:
             if binding.required:
-                logger.error("Required pack not found: %s", binding.path)
-                raise SystemExit(1)
-            logger.warning("Optional pack not found, skipping: %s", binding.path)
+                logger.error("Required pack '%s' not resolvable: %s", binding.pack_id, error)
+                raise SystemExit(1) from error
+            logger.warning("Optional pack '%s' not resolvable, skipping", binding.pack_id)
             continue
-        pack = pack_loader.load(binding.path)
+        pack = pack_loader.load(resolved_path)
         packs[pack.metadata.pack_id] = pack
         logger.info("Loaded pack: %s (%d objects)", pack.metadata.pack_id, pack.metadata.object_count)
 
