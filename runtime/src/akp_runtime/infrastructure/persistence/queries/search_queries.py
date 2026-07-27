@@ -23,7 +23,7 @@ class ExactAliasMatchQuery(PackQuery[list[tuple]]):
             SELECT a.canonical_id, o.type, o.title, o.description, o.domain, o.source_path
             FROM aliases a
             JOIN objects o ON a.canonical_id = o.id
-            WHERE a.alias = ?
+            WHERE LOWER(a.alias) = LOWER(?)
             LIMIT ?
         """
 

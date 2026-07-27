@@ -67,11 +67,15 @@ class CompilationPreparation:
         ontology_path.write_text(generate_ontology_yaml(result, existing_data), encoding="utf-8")
         print(f"[ontology-discover] Wrote {ontology_path}")
 
-    def load_ontology(self, ontology_path: Path) -> Ontology:
+    def load_ontology(self, ontology_path: Path, source_files: list[Path], source_root: Path) -> Ontology:
         from ruamel.yaml import YAML
 
         ontology = Ontology.from_dict(YAML(typ="safe").load(ontology_path.read_text(encoding="utf-8")))
         print(f"[ontology] Loaded v{ontology.version}")
+        result = discover_ontology(source_files, source_root)
+        added = ontology.merge_discovered_predicates(result.predicates)
+        if added:
+            print(f"[ontology] Merged {added} corpus-discovered predicates")
         return ontology
 
     def parse_sources(

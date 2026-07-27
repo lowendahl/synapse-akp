@@ -90,8 +90,22 @@ class Ontology:
         return type_name in self.object_types or type_name.replace(" ", "_") in self.object_types
 
     def is_valid_predicate(self, predicate: str) -> bool:
-        """Check if a predicate is in the ontology."""
-        return predicate in self.predicates
+        """Check if a predicate is in the ontology (including inverses)."""
+        if predicate in self.predicates:
+            return True
+        return any(spec.inverse == predicate for spec in self.predicates.values())
+
+    def merge_discovered_predicates(self, discovered_predicates: dict[str, object]) -> int:
+        """Merge corpus-discovered predicates into the ontology.
+
+        Returns the count of newly added predicates.
+        """
+        added = 0
+        for name in discovered_predicates:
+            if not self.is_valid_predicate(name):
+                self.predicates[name] = PredicateSpec(name=name, description=f"Auto-discovered from corpus")
+                added += 1
+        return added
 
     def is_valid_id(self, id_value: str) -> bool:
         """Check if an ID matches the required format."""
