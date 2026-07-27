@@ -131,6 +131,9 @@ class PackSourceResolver:
         if source.startswith(_GITHUB_SCHEME):
             return self._fetch_github_release(source, pack_id)
 
+        if source.startswith(("https://", "http://")):
+            return self._fetch_http_url(source, pack_id)
+
         # Bare path (no scheme)
         local_path = Path(source)
         return self._resolve_local_file(local_path, pack_id)
@@ -214,6 +217,16 @@ class PackSourceResolver:
             return self._resolve_local_file(downloaded, pack_id)
         except Exception:
             logger.exception("Failed to download pack '%s' from %s", pack_id, download_url)
+            return None
+
+    def _fetch_http_url(self, url: str, pack_id: str) -> Path | None:
+        """Download a .akp from any HTTPS/HTTP URL."""
+        try:
+            cache_path = self._cache_directory / f"{pack_id}.akp"
+            downloaded = self._download_to_cache(url, cache_path, pack_id)
+            return self._resolve_local_file(downloaded, pack_id)
+        except Exception:
+            logger.exception("Failed to download pack '%s' from %s", pack_id, url)
             return None
 
     def _build_github_download_url(self, owner: str, repo: str, tag: str, asset_name: str) -> str | None:

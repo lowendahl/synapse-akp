@@ -35,9 +35,10 @@ class PackManager:
         """Install a pack from a source URI or file path.
 
         Supported formats:
-          - org/repo/pack_id  → github://org/repo/releases/latest/pack_id.akp
-          - /path/to/file.akp → local file install
-          - github://...      → direct URI
+          - ./path/to/file.akp                                          → local file
+          - https://github.com/org/repo/releases/download/v1/pack.akp   → direct URL
+          - github://org/repo/releases/latest/pack.akp                  → GitHub shorthand
+          - org/repo/pack_id                                            → shorthand (latest release)
         """
         normalized_source, pack_id = self._normalize_source(source)
 
@@ -170,16 +171,23 @@ class PackManager:
             print(f"  - {artifact['file']} ({artifact['type']}, {size_mb:.1f} MB)")
 
     def _normalize_source(self, source: str) -> tuple[str, str]:
-        """Normalize user input to a source URI and pack_id."""
+        """Normalize user input to a source URI and pack_id.
+
+        Supported formats:
+          - ./path/to/file.akp              → file:// local path
+          - https://host/path/to/pack.akp   → https:// direct download
+          - github://org/repo/tag/file.akp  → GitHub release asset
+          - file:///absolute/path.akp       → explicit file URI
+          - org/repo/pack_id                → shorthand for github latest release
+        """
         # Local file
         local_path = Path(source)
         if local_path.exists() and local_path.suffix == ".akp":
             pack_id = local_path.stem
             return f"file://{local_path.resolve()}", pack_id
 
-        # Already a full URI
-        if source.startswith("github://") or source.startswith("file://"):
-            # Extract pack_id from URI
+        # Already a full URI (https://, github://, file://)
+        if source.startswith(("https://", "http://", "github://", "file://")):
             parts = source.rstrip("/").split("/")
             pack_id = parts[-1].replace(".akp", "").replace(".duckdb", "")
             return source, pack_id
