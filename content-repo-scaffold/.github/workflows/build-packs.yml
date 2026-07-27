@@ -1,0 +1,79 @@
+name: Build Knowledge Packs
+
+on:
+  push:
+    branches: [main]
+    paths: ["okf/**"]
+  pull_request:
+    paths: ["okf/**"]
+
+permissions:
+  contents: write
+
+jobs:
+  pii-scan:
+    name: PII & Customer Data Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/pii_scanner.py
+
+  compile:
+    name: Compile Packs
+    needs: pii-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install compiler
+        run: pip install akp-compiler
+
+      - name: Compile MCEM pack
+        run: kp-compile okf/mcem --output dist/mcem.duckdb --skip-embeddings
+
+      - name: Compile CSU pack
+        run: kp-compile okf/csu --output dist/csu.duckdb --skip-embeddings --dependency dist/mcem.duckdb
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-packs
+          path: dist/*.duckdb
+
+  release:
+    name: Publish Release
+    needs: compile
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: knowledge-packs
+          path: dist/
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum *.duckdb > checksums.sha256
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Knowledge Packs Build ${{ github.run_number }}
+          body: |
+            Automated build from commit ${{ github.sha }}.
+            Install: `pip install akp-runtime` and configure pack source URIs.
+          files: |
+            dist/mcem.duckdb
+            dist/csu.duckdb
+            dist/checksums.sha256

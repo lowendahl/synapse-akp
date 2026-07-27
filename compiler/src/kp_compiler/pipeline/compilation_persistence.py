@@ -139,6 +139,7 @@ class CompilationPersistence:
         return {
             "pack_id": pack_id,
             "pack_version": __version__,
+            "pack_format_version": "1",
             "schema_version": "2.0.0",
             "ontology_version": ontology_version,
             "compiler_version": __version__,

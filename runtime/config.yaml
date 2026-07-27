@@ -7,11 +7,23 @@ graph_boost_value: 0.1
 rrf_k: 60
 max_hops: 3
 embeddings_enabled: false
+pack_cache_directory: ~/.akp/packs
 
 packs:
   - pack_id: mcem
+    # Primary: GitHub release (auto-downloads on first use)
+    source: github://lowendahl/csu-iq-v2-knowledge/releases/latest/mcem.duckdb
+    # Cache: local file for subsequent runs
+    local_cache: ~/.akp/packs/mcem.duckdb
+    # Fallback: local development build (air-gapped mode)
+    fallback: ../dist/mcem.duckdb
+    # Legacy path also works (backward compat):
     path: ../dist/mcem.duckdb
     required: true
+
   - pack_id: csu
+    source: github://lowendahl/csu-iq-v2-knowledge/releases/latest/csu.duckdb
+    local_cache: ~/.akp/packs/csu.duckdb
+    fallback: ../dist/csu.duckdb
     path: ../dist/csu.duckdb
     required: true

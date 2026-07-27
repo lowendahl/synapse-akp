@@ -60,6 +60,12 @@ class YamlConfigLoader(ConfigLoader):
         if "packs" in yaml_data and "packs" not in env_overrides:
             merged["packs"] = yaml_data["packs"]
 
+        # Expand tilde in pack_cache_directory
+        if "pack_cache_directory" in merged:
+            raw_cache = str(merged["pack_cache_directory"])
+            if raw_cache.startswith("~"):
+                merged["pack_cache_directory"] = Path(os.path.expanduser(raw_cache))
+
         try:
             return RuntimeConfigModel(**merged)
         except ValidationError as e:
@@ -118,11 +124,18 @@ class YamlConfigLoader(ConfigLoader):
         """Resolve relative pack paths against the config file's parent directory."""
         resolved = []
         for pack in packs:
-            p = pack.get("path", "")
-            path = Path(p)
-            if not path.is_absolute():
-                path = base_dir / path
             pack_copy = dict(pack)
-            pack_copy["path"] = path
+
+            # Resolve all path-like fields
+            for field in ("path", "local_cache", "fallback"):
+                raw = pack_copy.get(field)
+                if raw is not None:
+                    path = Path(str(raw))
+                    if str(raw).startswith("~"):
+                        path = Path(os.path.expanduser(str(raw)))
+                    elif not path.is_absolute():
+                        path = base_dir / path
+                    pack_copy[field] = path
+
             resolved.append(pack_copy)
         return resolved
