@@ -70,4 +70,26 @@ Runtime and MCP decisions.
 
 ## Composer
 
-Composer-specific decisions will be added here from draft ADRs.
+Draft Composer ADRs for source acquisition, extraction, interpretation, workflow and persistence.
+
+- [Composer ADR Index](./composer/index.md)
+- [COM001 Recommended Reference Stack](./composer/COM001-reference-stack.md)
+- [COM002 Use Docling as the Primary Extraction Framework](./composer/COM002-docling-primary-extraction.md)
+- [COM003 Use Format-Native Parsers for Fidelity](./composer/COM003-format-native-parsers.md)
+- [COM004 Azure Document Intelligence Is an Escalation Tier](./composer/COM004-azure-document-intelligence-escalation.md)
+- [COM005 MarkItDown Is a Convenience Adapter](./composer/COM005-markitdown-convenience-adapter.md)
+- [COM006 Keep Unstructured as a Benchmark and Fallback Provider](./composer/COM006-unstructured-benchmark-fallback.md)
+- [COM007 Define the Synapse Canonical Document Model](./composer/COM007-canonical-document-model.md)
+- [COM008 Use Two Separate AI Stages](./composer/COM008-two-ai-stages.md)
+- [COM009 Use Typed Model Calls, Not Free-Form Agent Responses](./composer/COM009-typed-model-calls.md)
+- [COM010 Use Specialist Agents, but a Deterministic Workflow](./composer/COM010-deterministic-workflow-specialist-agents.md)
+- [COM011 Start with an Explicit Persistent State Machine; Introduce Temporal When Required](./composer/COM011-explicit-state-machine.md)
+- [COM012 Web Acquisition Uses HTTP First, Browser Second](./composer/COM012-web-acquisition.md)
+- [COM013 Visual Interpretation Is Separate from Text Extraction](./composer/COM013-visual-interpretation-separation.md)
+- [COM014 Git-Backed OKF Is the Canonical Knowledge Store](./composer/COM014-git-backed-okf-store.md)
+- [COM015 DuckDB Locally, PostgreSQL for Shared Composer State](./composer/COM015-persistence-profiles.md)
+- [COM016 Do Not Introduce Neo4j Initially](./composer/COM016-no-neo4j-initially.md)
+- [COM017 Use Vectors Only for Candidate Generation](./composer/COM017-vectors-candidate-generation.md)
+- [COM018 Provenance Must Be Native, Not Added Afterward](./composer/COM018-native-provenance.md)
+- [COM019 Validation Is Layered](./composer/COM019-layered-validation.md)
+- [COM020 Build an Evaluation Harness Before Optimizing Models](./composer/COM020-evaluation-harness-before-optimization.md)
