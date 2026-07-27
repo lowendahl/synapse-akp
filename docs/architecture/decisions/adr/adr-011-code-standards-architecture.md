@@ -32,99 +32,20 @@ This ADR establishes non-negotiable engineering standards for the compiler codeb
 ### Top-Level Structure
 
 ```
-kp_compiler/
-├── contracts/                # Protocols and ABCs — NO implementations here
-│   ├── __init__.py
-│   ├── parser.py            # Protocol: SourceParser
-│   ├── normalizer.py        # Protocol: Normalizer
-│   ├── validator.py         # Protocol: Validator
-│   ├── enricher.py          # Protocol: Enricher
-│   ├── graph_builder.py     # Protocol: GraphBuilder
-│   ├── projector.py         # Protocol: Projector
-│   ├── assembler.py         # Protocol: PackAssembler
-│   ├── events.py            # Domain event base types
-│   └── errors.py            # Typed exception hierarchy
-│
-├── domain/                   # Pure domain logic — NO infrastructure imports
-│   ├── __init__.py
-│   ├── models.py            # Pydantic domain objects (KnowledgeObject, etc.)
-│   ├── ontology.py          # Ontology loading and enforcement
-│   ├── identity.py          # Stable ID generation and validation
-│   ├── provenance.py        # Provenance record construction
-│   ├── semantic_units.py    # Semantic unit boundary detection
-│   └── diagnostics.py       # Diagnostic collection and classification
-│
-├── stages/                   # Pipeline stage implementations
-│   ├── __init__.py
-│   ├── discover.py          # Source discovery
-│   ├── parse.py             # Markdown + YAML → Pydantic
-│   ├── normalize.py         # Canonical forms, alias expansion
-│   ├── validate.py          # Ontology + schema validation
-│   ├── resolve.py           # ID resolution, reference linking
-│   ├── enrich.py            # spaCy NLP, acronym extraction
-│   ├── graph.py             # NetworkX graph construction + analysis
-│   └── project/             # Projection builders
-│       ├── __init__.py
-│       ├── canonical.py     # Canonical object table
-│       ├── graph_export.py  # Node/edge tables + metrics
-│       ├── lexical.py       # BM25 index
-│       ├── dense.py         # FastEmbed vectors
-│       └── alias.py         # Alias registry
-│
-├── infrastructure/           # Adapter implementations — ALL IO lives here
-│   ├── __init__.py
-│   ├── filesystem.py        # File reading/writing adapter
-│   ├── duckdb_writer.py     # DuckDB pack writer adapter
-│   ├── usearch_writer.py    # USearch vector index adapter
-│   ├── git_resolver.py      # Git revision resolver adapter
-│   ├── spacy_adapter.py     # spaCy NLP adapter
-│   ├── fastembed_adapter.py # FastEmbed embedding adapter
-│   └── bm25s_adapter.py    # BM25S index adapter
-│
-├── pipeline/                 # Orchestration
-│   ├── __init__.py
-│   ├── compiler.py          # Main pipeline DAG orchestrator
-│   ├── config.py            # Build configuration loading
-│   └── manifest.py          # Manifest generation + hashing
-│
-├── events/                   # Domain events (observability)
-│   ├── __init__.py
-│   ├── compilation.py       # StageStarted, StageCompleted, DiagnosticEmitted
-│   ├── validation.py        # OntologyViolation, OrphanDetected, CycleDetected
-│   └── bus.py               # Event bus (publish/subscribe)
-│
-└── cli.py                    # Entry point (thin shell — delegates immediately)
-
+compiler_package/
+├── contracts/       # Protocols and ABCs — NO implementations
+├── domain/          # Pure domain logic — NO infrastructure imports
+├── stages/          # Pipeline stage implementations
+│   └── project/     # Projection builders (canonical, lexical, dense, alias)
+├── infrastructure/  # Adapter implementations — ALL IO lives here
+├── pipeline/        # Orchestration (DAG, config, manifest)
+├── events/          # Domain events + event bus
+└── cli.py           # Entry point (thin shell — delegates immediately)
 
 tests/
-├── unit/                     # Fast, isolated, no IO
-│   ├── domain/
-│   │   ├── test_models.py
-│   │   ├── test_ontology.py
-│   │   ├── test_identity.py
-│   │   └── test_provenance.py
-│   ├── stages/
-│   │   ├── test_parse.py
-│   │   ├── test_normalize.py
-│   │   ├── test_validate.py
-│   │   ├── test_resolve.py
-│   │   ├── test_enrich.py
-│   │   └── test_graph.py
-│   └── projections/
-│       ├── test_canonical.py
-│       ├── test_lexical.py
-│       └── test_dense.py
-│
-├── integration/              # Tests with real infrastructure (DuckDB, filesystem)
-│   ├── test_duckdb_writer.py
-│   ├── test_usearch_writer.py
-│   ├── test_full_pipeline.py
-│   └── test_pack_integrity.py
-│
-└── fixtures/                 # Test data (minimal OKF files)
-    ├── minimal_corpus/
-    ├── invalid_corpus/
-    └── expected_outputs/
+├── unit/            # Fast, isolated, no IO
+├── integration/     # Tests with real infrastructure
+└── fixtures/        # Test data (minimal OKF files)
 ```
 
 ## Engineering Standards
@@ -373,8 +294,8 @@ Test strategy: Unit tests with in-memory string fixtures. No filesystem access.
 
 | ADR | How This Relates |
 |-----|-----------------|
-| ADR-008 (Pydantic IR) | Domain models defined in `domain/models.py` |
-| ADR-007 (NetworkX) | NetworkX is a domain library; graph logic in `stages/graph.py` |
-| ADR-003 (DuckDB) | DuckDB access ONLY through `infrastructure/duckdb_writer.py` |
+| ADR-008 (Pydantic IR) | Domain models follow the Pydantic IR decision |
+| ADR-007 (NetworkX) | NetworkX is a domain library; graph logic lives in stages |
+| ADR-003 (DuckDB) | DuckDB access ONLY through infrastructure adapters |
 | ADR-009 (V1 Scope) | This ADR governs HOW the V1 pipeline is built |
 | ADR-010 (Principles) | This ADR operationalizes those principles into code standards |

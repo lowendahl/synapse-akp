@@ -90,30 +90,10 @@ query -> [alias exact]    score=1.0 for exact matches
 
 ### V2 New DuckDB Tables
 
-```sql
--- BM25 token storage (bm25s serialization)
-CREATE TABLE bm25_tokens (
-    unit_id VARCHAR NOT NULL,
-    tokens JSON NOT NULL
-);
-
--- Vector metadata (vectors live in .usearch sidecar)
-CREATE TABLE vector_metadata (
-    unit_id VARCHAR PRIMARY KEY,
-    model_name VARCHAR NOT NULL,
-    model_version VARCHAR NOT NULL,
-    dimensions INTEGER NOT NULL,
-    input_hash VARCHAR NOT NULL
-);
-
--- Cross-pack references
-CREATE TABLE cross_pack_refs (
-    source_id VARCHAR NOT NULL,
-    target_qualified_id VARCHAR NOT NULL,
-    target_pack VARCHAR NOT NULL,
-    resolved BOOLEAN DEFAULT FALSE
-);
-```
+V2 extends the pack schema with three new tables:
+- **BM25 token storage** — serialized token arrays per semantic unit for lexical retrieval
+- **Vector metadata** — model name, version, dimensions, and input hash per embedded unit (vectors stored in a sidecar index file)
+- **Cross-pack references** — source-to-target qualified ID mappings with resolution status
 
 ### V2 Domain Events
 
