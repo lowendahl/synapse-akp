@@ -11,19 +11,16 @@ pack_cache_directory: ~/.akp/packs
 
 packs:
   - pack_id: mcem
-    # Primary: GitHub release (auto-downloads on first use)
-    source: github://lowendahl/csu-iq-v2-knowledge/releases/latest/mcem.duckdb
-    # Cache: local file for subsequent runs
-    local_cache: ~/.akp/packs/mcem.duckdb
-    # Fallback: local development build (air-gapped mode)
-    fallback: ../dist/mcem.duckdb
-    # Legacy path also works (backward compat):
+    # Primary: GitHub release (auto-downloads .akp on first use)
+    source: github://mcaps-microsoft/csu-iq-akp-repository/releases/latest/mcem.akp
+    # Fallback: local development build
+    fallback: ../dist/mcem.akp
+    # Legacy: bare .duckdb also works (backward compat)
     path: ../dist/mcem.duckdb
     required: true
 
   - pack_id: csu
-    source: github://lowendahl/csu-iq-v2-knowledge/releases/latest/csu.duckdb
-    local_cache: ~/.akp/packs/csu.duckdb
-    fallback: ../dist/csu.duckdb
+    source: github://mcaps-microsoft/csu-iq-akp-repository/releases/latest/csu.akp
+    fallback: ../dist/csu.akp
     path: ../dist/csu.duckdb
     required: true
