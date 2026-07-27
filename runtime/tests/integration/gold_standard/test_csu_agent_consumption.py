@@ -10,9 +10,6 @@ Each test validates the contract surface that agents depend on.
 
 from __future__ import annotations
 
-import pytest
-
-from akp_runtime.domain.explain_models import ExplainResult
 from akp_runtime.infrastructure.duckdb_loader import DuckDBLoadedPack
 from akp_runtime.operations.explain_concept import ExplainConceptOperation
 
@@ -22,9 +19,7 @@ class TestCsuAgentConsumption:
 
     # ─── Gold 1: Job1 — resolution priority is correct (concept > measurement > evidence) ─
 
-    def test_job1_resolution_priority_concept_over_kpi(
-        self, csu_pack: DuckDBLoadedPack
-    ) -> None:
+    def test_job1_resolution_priority_concept_over_kpi(self, csu_pack: DuckDBLoadedPack) -> None:
         """Job1 resolves to Process (concept role), NOT KPI (measurement role)."""
         hits = csu_pack.exact_matches("Job1", limit=5)
 
@@ -38,9 +33,7 @@ class TestCsuAgentConsumption:
 
     # ─── Gold 2: UDC — semantic units have required fields ────────────────────
 
-    def test_udc_semantic_units_have_complete_fields(
-        self, csu_pack: DuckDBLoadedPack
-    ) -> None:
+    def test_udc_semantic_units_have_complete_fields(self, csu_pack: DuckDBLoadedPack) -> None:
         """UDC semantic units have all required fields for agent consumption."""
         hits = csu_pack.exact_matches("UDC", limit=1)
         assert len(hits) >= 1
@@ -58,9 +51,7 @@ class TestCsuAgentConsumption:
 
     # ─── Gold 3: CSP — graph neighbors provide typed relationships ────────────
 
-    def test_csp_graph_neighbors_have_typed_edges(
-        self, csu_pack: DuckDBLoadedPack
-    ) -> None:
+    def test_csp_graph_neighbors_have_typed_edges(self, csu_pack: DuckDBLoadedPack) -> None:
         """CSP graph neighbors expose predicate, type, and title for agents."""
         hits = csu_pack.exact_matches("CSP", limit=1)
         assert len(hits) >= 1
@@ -78,9 +69,7 @@ class TestCsuAgentConsumption:
 
     # ─── Gold 4: Customer Health — ExplainResult has all contract fields ──────
 
-    def test_customer_health_explain_result_contract_complete(
-        self, csu_explain: ExplainConceptOperation
-    ) -> None:
+    def test_customer_health_explain_result_contract_complete(self, csu_explain: ExplainConceptOperation) -> None:
         """ExplainResult for Customer Health has every contract field populated."""
         result = csu_explain.explain("Customer Health", detail_level="standard")
 

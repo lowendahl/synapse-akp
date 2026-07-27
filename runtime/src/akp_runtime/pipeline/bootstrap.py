@@ -9,6 +9,7 @@ Test strategy: Integration tests verify startup, tool availability, and clean sh
 
 from __future__ import annotations
 
+import logging
 import signal
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -16,6 +17,8 @@ from pathlib import Path
 
 from akp_runtime.contracts.events import ServerStarting, ServerStopping
 from akp_runtime.events.bus import EventBus
+
+logger = logging.getLogger(__name__)
 
 
 class RuntimeContext:
@@ -35,7 +38,6 @@ class RuntimeContext:
         """Bootstrap: load config, open packs, register tools, install signal handlers."""
         self._bus.emit(ServerStarting(config_source=str(self._config_path or "auto")))
         self._install_signal_handlers()
-        # PBI #11: full bootstrap logic
         return self
 
     def __exit__(self, exc_type: type | None, exc_val: BaseException | None, exc_tb: object) -> None:
@@ -45,13 +47,16 @@ class RuntimeContext:
 
     def serve(self) -> None:
         """Run MCP stdio server (blocks until client disconnects)."""
-        raise NotImplementedError("PBI #11")
+        from akp_runtime.consumer.mcp_server import _create_server
+
+        server = _create_server(config_path=self._config_path)
+        server.run(transport="stdio")
 
     def _shutdown(self) -> None:
         """Release all resources in reverse-init order."""
         self._closed = True
         self._bus.emit(ServerStopping(reason="shutdown"))
-        # PBI #11: close vector indexes, DuckDB connections, embedder
+        logger.info("Runtime shutdown complete")
 
     def _install_signal_handlers(self) -> None:
         """Register SIGTERM/SIGINT handlers for graceful shutdown."""
@@ -60,6 +65,7 @@ class RuntimeContext:
 
     def _signal_handler(self, signum: int, frame: object) -> None:
         """Handle termination signals gracefully."""
+        logger.info("Signal %d received, shutting down", signum)
         if not self._closed:
             self._shutdown()
         raise SystemExit(0)

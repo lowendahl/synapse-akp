@@ -1,0 +1,17 @@
+server_name: akp-runtime
+default_limit: 10
+lexical_k: 20
+semantic_k: 20
+graph_boost_top_n: 3
+graph_boost_value: 0.1
+rrf_k: 60
+max_hops: 3
+embeddings_enabled: false
+
+packs:
+  - pack_id: mcem
+    path: ../dist/mcem.duckdb
+    required: true
+  - pack_id: csu
+    path: ../dist/csu.duckdb
+    required: true

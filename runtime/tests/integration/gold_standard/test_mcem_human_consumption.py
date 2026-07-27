@@ -7,9 +7,6 @@ Methodology) knowledge pack.
 
 from __future__ import annotations
 
-import pytest
-
-from akp_runtime.domain.explain_models import ExplainResult
 from akp_runtime.operations.explain_concept import ExplainConceptOperation
 
 
@@ -18,9 +15,7 @@ class TestMcemHumanConsumption:
 
     # ─── Gold 1: ICP → Framework concept with planning context ────────────────
 
-    def test_icp_resolves_to_framework_concept(
-        self, mcem_explain: ExplainConceptOperation
-    ) -> None:
+    def test_icp_resolves_to_framework_concept(self, mcem_explain: ExplainConceptOperation) -> None:
         """ICP resolves to Integrated Customer Planning framework."""
         result = mcem_explain.explain("ICP", detail_level="standard")
 
@@ -35,9 +30,7 @@ class TestMcemHumanConsumption:
 
     # ─── Gold 2: Account Planning → Process with related context ──────────────
 
-    def test_account_planning_explains_process(
-        self, mcem_explain: ExplainConceptOperation
-    ) -> None:
+    def test_account_planning_explains_process(self, mcem_explain: ExplainConceptOperation) -> None:
         """Account Planning explains the planning process with relationships."""
         result = mcem_explain.explain("Account Planning", detail_level="standard")
 
@@ -50,9 +43,7 @@ class TestMcemHumanConsumption:
 
     # ─── Gold 3: UCR → Metric with measurement content ───────────────────────
 
-    def test_ucr_explains_revenue_metric(
-        self, mcem_explain: ExplainConceptOperation
-    ) -> None:
+    def test_ucr_explains_revenue_metric(self, mcem_explain: ExplainConceptOperation) -> None:
         """UCR explains Unified Consumed Revenue metric clearly."""
         result = mcem_explain.explain("UCR", detail_level="standard")
 
@@ -65,9 +56,7 @@ class TestMcemHumanConsumption:
 
     # ─── Gold 4: PCI → Pipeline Coverage Index measurement ───────────────────
 
-    def test_pci_explains_pipeline_coverage(
-        self, mcem_explain: ExplainConceptOperation
-    ) -> None:
+    def test_pci_explains_pipeline_coverage(self, mcem_explain: ExplainConceptOperation) -> None:
         """PCI explains Pipeline Coverage Index with measurement context."""
         result = mcem_explain.explain("PCI", detail_level="standard")
 
@@ -80,9 +69,7 @@ class TestMcemHumanConsumption:
 
     # ─── Gold 5: Committed Pipeline → detailed includes all units ────────────
 
-    def test_committed_pipeline_detailed_is_comprehensive(
-        self, mcem_explain: ExplainConceptOperation
-    ) -> None:
+    def test_committed_pipeline_detailed_is_comprehensive(self, mcem_explain: ExplainConceptOperation) -> None:
         """Committed Pipeline at detailed level includes all available content."""
         result = mcem_explain.explain("Committed Pipeline", detail_level="detailed")
 

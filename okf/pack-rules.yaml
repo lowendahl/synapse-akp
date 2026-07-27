@@ -135,3 +135,28 @@ quality_thresholds:
 
   # If true, the build fails when the pass rate is below the threshold.
   fail_on_error: true
+
+# ── PII Detection Rules (compile-time gate) ────────────────────────────────
+# Sources containing these patterns will trigger warnings or errors.
+# Prevents accidental exposure of customer data in knowledge packs.
+pii_rules:
+
+  - pattern: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    description: "Email address detected in source"
+    severity: error
+
+  - pattern: '\b\d{3}[-.]?\d{3}[-.]?\d{4}\b'
+    description: "Phone number pattern detected"
+    severity: error
+
+  - pattern: '\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b'
+    description: "UUID/tenant/subscription ID detected"
+    severity: warning
+
+  - pattern: '\b(MSFT|msft)[-/]?\d{6,}\b'
+    description: "Microsoft internal ticket/case number detected"
+    severity: warning
+
+  - pattern: '\bhttps?://[^\s]*[?&](token|key|secret|password|auth)=[^\s&]*'
+    description: "URL with embedded credential parameter"
+    severity: error
