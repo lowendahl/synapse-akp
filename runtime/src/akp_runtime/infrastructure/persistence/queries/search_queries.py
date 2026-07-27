@@ -22,7 +22,10 @@ class ExactAliasMatchQuery(PackQuery[list[tuple]]):
         "WHEN 'concept' THEN 1 WHEN 'measurement' THEN 2 "
         "WHEN 'evidence' THEN 3 ELSE 4 END"
     )
-    _ALIAS_TYPE_PRIORITY = "CASE a.alias_type WHEN 'author' THEN 1 WHEN 'explicit' THEN 2 WHEN 'title' THEN 2 WHEN 'tag' THEN 3 ELSE 4 END"
+    _ALIAS_TYPE_PRIORITY = (
+        "CASE a.alias_type WHEN 'author' THEN 1 WHEN 'explicit' THEN 2 "
+        "WHEN 'title' THEN 2 WHEN 'tag' THEN 3 ELSE 4 END"
+    )
 
     def __init__(self, alias: str, limit: int) -> None:
         self._alias = alias

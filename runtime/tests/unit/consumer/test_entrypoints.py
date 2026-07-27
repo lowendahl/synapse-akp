@@ -24,3 +24,10 @@ def test_mcp_server_main_delegates_to_application(monkeypatch: pytest.MonkeyPatc
     mcp_server.main()
 
     assert called == ["mcp"]
+
+
+def test_mcp_server_creates_fastmcp_instance() -> None:
+    """The _create_server function produces a configured FastMCP instance."""
+    server = mcp_server._create_server(config_path=None)
+    assert server is not None
+    assert server.name == "akp-runtime"

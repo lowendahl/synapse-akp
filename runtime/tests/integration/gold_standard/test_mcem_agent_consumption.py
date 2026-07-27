@@ -6,9 +6,6 @@ data suitable for machine (agent) consumers against the MCEM pack.
 
 from __future__ import annotations
 
-import pytest
-
-from akp_runtime.domain.explain_models import ExplainResult
 from akp_runtime.infrastructure.duckdb_loader import DuckDBLoadedPack
 from akp_runtime.operations.explain_concept import ExplainConceptOperation
 
@@ -18,9 +15,7 @@ class TestMcemAgentConsumption:
 
     # ─── Gold 1: ICP — concept role takes priority in resolution ──────────────
 
-    def test_icp_resolution_prioritizes_concept_role(
-        self, mcem_pack: DuckDBLoadedPack
-    ) -> None:
+    def test_icp_resolution_prioritizes_concept_role(self, mcem_pack: DuckDBLoadedPack) -> None:
         """ICP resolves to Framework (concept role) over other types."""
         hits = mcem_pack.exact_matches("ICP", limit=5)
 
@@ -31,9 +26,7 @@ class TestMcemAgentConsumption:
 
     # ─── Gold 2: Account Planning — semantic units are well-structured ────────
 
-    def test_account_planning_units_have_valid_structure(
-        self, mcem_pack: DuckDBLoadedPack
-    ) -> None:
+    def test_account_planning_units_have_valid_structure(self, mcem_pack: DuckDBLoadedPack) -> None:
         """Account Planning semantic units are well-structured for agents."""
         hits = mcem_pack.exact_matches("Account Planning", limit=1)
         assert len(hits) >= 1
@@ -49,9 +42,7 @@ class TestMcemAgentConsumption:
 
     # ─── Gold 3: UCR — graph neighbors provide measurement relationships ─────
 
-    def test_ucr_neighbors_expose_stage_relationships(
-        self, mcem_pack: DuckDBLoadedPack
-    ) -> None:
+    def test_ucr_neighbors_expose_stage_relationships(self, mcem_pack: DuckDBLoadedPack) -> None:
         """UCR graph neighbors connect to MCEM stages for agent navigation."""
         hits = mcem_pack.exact_matches("UCR", limit=1)
         assert len(hits) >= 1
@@ -69,9 +60,7 @@ class TestMcemAgentConsumption:
 
     # ─── Gold 4: PCI — ExplainResult contract is complete for agents ──────────
 
-    def test_pci_explain_result_is_agent_parseable(
-        self, mcem_explain: ExplainConceptOperation
-    ) -> None:
+    def test_pci_explain_result_is_agent_parseable(self, mcem_explain: ExplainConceptOperation) -> None:
         """PCI ExplainResult satisfies the full agent consumption contract."""
         result = mcem_explain.explain("PCI", detail_level="standard")
 
@@ -105,6 +94,4 @@ class TestMcemAgentConsumption:
         valid_ids = {u.unit_id for u in all_units}
 
         for cited_id in result.cited_unit_ids:
-            assert cited_id in valid_ids, (
-                f"Cited unit {cited_id} not traceable to Committed Pipeline object"
-            )
+            assert cited_id in valid_ids, f"Cited unit {cited_id} not traceable to Committed Pipeline object"
