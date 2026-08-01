@@ -25,14 +25,13 @@ class EdgeListQuery(QueryProtocol[list[tuple[object, ...]]]):
 
 @dataclass(frozen=True)
 class CrossPackReferenceQuery(QueryProtocol[list[tuple[object, ...]]]):
-    """Load resolved cross-pack references for explorer links."""
+    """Load all cross-pack references for explorer links (resolved at view time)."""
 
     def execute(self, connection: object) -> list[tuple[object, ...]]:
         return connection.execute(
             """
             SELECT source_id, target_qualified_id, predicate
             FROM cross_pack_refs
-            WHERE resolved = true
             """
         ).fetchall()
 

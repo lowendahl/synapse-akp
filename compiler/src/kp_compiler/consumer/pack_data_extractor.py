@@ -52,11 +52,36 @@ class PackDataExtractor:
         seen: set[tuple[str, str, str]] = set()
         valid = []
         for link in links:
-            key = (link["source"], link["target"], link.get("predicate", "references"))
-            if link["source"] in node_ids and link["target"] in node_ids and key not in seen:
-                seen.add(key)
-                valid.append(link)
+            source = link["source"]
+            target = link["target"]
+            # Resolve qualified cross-pack IDs to short node IDs
+            if source not in node_ids:
+                source = self._resolve_qualified_id(source, node_ids)
+            if target not in node_ids:
+                target = self._resolve_qualified_id(target, node_ids)
+            if source and target:
+                predicate = link.get("predicate", "references")
+                key = (source, target, predicate)
+                if key not in seen:
+                    seen.add(key)
+                    valid.append({**link, "source": source, "target": target})
         return json.dumps({"nodes": nodes, "links": valid})
+
+    def _resolve_qualified_id(self, qualified_id: str, node_ids: set[str]) -> str | None:
+        """Resolve a qualified cross-pack ID (e.g. mcem.stage.stage-1) to a node ID."""
+        # Try as-is first
+        if qualified_id in node_ids:
+            return qualified_id
+        # Strip domain.type. prefix: mcem.stage.stage-1-listen-consult -> stage-1-listen-consult
+        parts = qualified_id.split(".")
+        if len(parts) >= 3:
+            short_id = ".".join(parts[2:])
+            if short_id in node_ids:
+                return short_id
+        # Try last segment only
+        if parts[-1] in node_ids:
+            return parts[-1]
+        return None
 
     def _nodes(
         self,
