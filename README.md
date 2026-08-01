@@ -4,6 +4,8 @@ Compiler and runtime for building immutable, versioned knowledge packs from
 canonical Markdown sources.  Knowledge packs are DuckDB databases that power
 agentic retrieval, evidence-grounded reasoning, and 3-D exploration.
 
+📖 **[Product Overview](docs/product-pitch.md)** — what AKP is, who it's for, and why it matters.
+
 ## Quick start
 
 ```bash
