@@ -52,7 +52,7 @@ class GraphBuilder:
                 continue
             graph.add_node(
                 obj.id,
-                type=obj.type.value,
+                type=obj.type,
                 title=obj.title,
                 domain=obj.domain,
                 source_path=obj.source_path,

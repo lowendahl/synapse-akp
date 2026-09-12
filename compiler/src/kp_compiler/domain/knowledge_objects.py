@@ -5,7 +5,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from kp_compiler.domain.core_models import Provenance, Relationship, Section
-from kp_compiler.domain.enumerations import Classification, MeasurementParadigm, ObjectType
+from kp_compiler.domain.enumerations import Classification, MeasurementParadigm
 
 
 class KnowledgeObject(BaseModel):
@@ -14,7 +14,7 @@ class KnowledgeObject(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str
-    type: ObjectType
+    type: str
     title: str
     description: str = ""
     aliases: list[str] = Field(default_factory=list)

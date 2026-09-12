@@ -23,7 +23,7 @@ class DuckDBProjectionWriter(PackWriter):
                     "INSERT OR REPLACE INTO objects VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     [
                         obj.id,
-                        obj.type.value,
+                        obj.type,
                         obj.title,
                         obj.description,
                         obj.domain,

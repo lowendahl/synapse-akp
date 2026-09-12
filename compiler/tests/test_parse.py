@@ -4,12 +4,28 @@ import pytest
 
 from kp_compiler.contracts.errors import OntologyViolation
 from kp_compiler.domain.models import ObjectType
+from kp_compiler.domain.ontology import Ontology
+from kp_compiler.stages.knowledge_object_factory import KnowledgeObjectFactory
 from kp_compiler.stages.parse import (
-    determine_object_type,
     extract_sections,
     parse_frontmatter,
     parse_source,
 )
+
+
+def _factory_with_ontology() -> KnowledgeObjectFactory:
+    ontology = Ontology.from_dict(
+        {
+            "version": "test",
+            "object_types": {
+                "Stage": {"resolution_role": "concept", "aliases": ["MCEM Stage"]},
+                "Pipeline": {"resolution_role": "concept", "aliases": ["Pipeline Object"]},
+                "Organization": {"resolution_role": "concept", "aliases": ["Operating Model"]},
+                "Metric": {"resolution_role": "measurement"},
+            },
+        }
+    )
+    return KnowledgeObjectFactory(ontology=ontology)
 
 
 class TestParseFrontmatter:
@@ -51,15 +67,16 @@ class TestExtractSections:
 
 
 class TestDetermineObjectType:
-    def test_known_types(self) -> None:
-        assert determine_object_type("Metric") == ObjectType.METRIC
-        assert determine_object_type("MCEM Stage") == ObjectType.STAGE
-        assert determine_object_type("Pipeline Object") == ObjectType.PIPELINE
-        assert determine_object_type("Operating Model") == ObjectType.ORGANIZATION
+    def test_types_resolve_to_canonical_via_ontology(self) -> None:
+        factory = _factory_with_ontology()
+        assert factory.resolve_type("Metric") == "Metric"
+        assert factory.resolve_type("MCEM Stage") == "Stage"
+        assert factory.resolve_type("Pipeline Object") == "Pipeline"
+        assert factory.resolve_type("Operating Model") == "Organization"
 
     def test_unknown_type_raises_ontology_violation(self) -> None:
         with pytest.raises(OntologyViolation):
-            determine_object_type("SomethingNew")
+            _factory_with_ontology().resolve_type("SomethingNew")
 
 
 class TestParseSource:
@@ -94,6 +111,6 @@ class TestParseSource:
             "---\n"
             "# Entry Criteria\nTrigger.\n"
         )
-        obj = parse_source(content, "mcem/stages/listen-consult.md")
+        obj = _factory_with_ontology().parse(content, "mcem/stages/listen-consult.md")
         assert obj.type == ObjectType.STAGE
         assert obj.domain == "mcem"

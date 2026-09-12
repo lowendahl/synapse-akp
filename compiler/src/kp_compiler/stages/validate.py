@@ -9,7 +9,7 @@ Boundaries: Must NOT modify objects or perform enrichment.
 from __future__ import annotations
 
 from kp_compiler.contracts.protocols import Diagnostic, Severity
-from kp_compiler.domain.models import KnowledgeObject, ObjectType
+from kp_compiler.domain.models import KnowledgeObject
 from kp_compiler.domain.ontology import Ontology
 
 
@@ -23,7 +23,7 @@ class OntologyValidator:
         """Validate a single object against the ontology. Returns diagnostics."""
         diagnostics: list[Diagnostic] = []
 
-        if obj.type in (ObjectType.INDEX, ObjectType.LOG):
+        if obj.type in ("Index", "Log"):
             return diagnostics
 
         if not obj.id and not obj.title and "index.md" in obj.source_path:
@@ -71,19 +71,19 @@ class OntologyValidator:
             )
 
     def _check_type_valid(self, obj: KnowledgeObject, diagnostics: list[Diagnostic]) -> None:
-        if not self._ontology.is_valid_type(obj.type.value):
+        if not self._ontology.is_valid_type(obj.type):
             diagnostics.append(
                 Diagnostic(
                     severity=Severity.ERROR,
                     source_file=obj.source_path,
-                    message=f"Unknown type '{obj.type.value}' — not in ontology",
+                    message=f"Unknown type '{obj.type}' — not in ontology",
                     stage="validate",
                     object_id=obj.id,
                 )
             )
 
     def _check_required_fields(self, obj: KnowledgeObject, diagnostics: list[Diagnostic]) -> None:
-        required = self._ontology.get_required_fields(obj.type.value)
+        required = self._ontology.get_required_fields(obj.type)
         for field_name in required:
             if field_name == "id" and not obj.id:
                 diagnostics.append(

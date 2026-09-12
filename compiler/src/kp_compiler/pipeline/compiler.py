@@ -26,7 +26,7 @@ class PackCompiler:
     def _inject_resolution_roles(self, objects: list, ontology: Ontology) -> None:
         """Stamp each object's properties with its ontology-declared resolution_role."""
         for obj in objects:
-            role = ontology.get_resolution_role(obj.type.value)
+            role = ontology.get_resolution_role(obj.type)
             if role != "neutral":
                 obj.properties["resolution_role"] = role
 
@@ -40,6 +40,7 @@ class PackCompiler:
         skip_embeddings: bool = False,
         discover_ontology: bool = False,
         rules: PackRules | None = None,
+        domain: str = "",
     ) -> tuple[bool, list[Diagnostic]]:
         active_rules = rules or PackRules.default()
         self._preparation.ensure_utf8_stdout()
@@ -48,7 +49,9 @@ class PackCompiler:
         source_files = self._preparation.discover_sources(source_root, bus)
         self._preparation.maybe_discover_ontology(discover_ontology, source_files, source_root, ontology_path)
         ontology = self._preparation.load_ontology(ontology_path, source_files, source_root)
-        objects, diagnostics = self._preparation.parse_sources(source_files, source_root, bus)
+        objects, diagnostics = self._preparation.parse_sources(
+            source_files, source_root, bus, ontology, domain
+        )
         self._inject_resolution_roles(objects, ontology)
         validation_diagnostics, errors, warnings = self._projection.validate(objects, ontology, bus)
         diagnostics.extend(validation_diagnostics)

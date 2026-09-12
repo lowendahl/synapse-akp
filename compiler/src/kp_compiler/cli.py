@@ -53,6 +53,8 @@ class CompilerCli:
         manifest = yaml.load(pack_yaml.read_text(encoding="utf-8"))
         print(f"[manifest] Loaded {pack_yaml}")
 
+        args.domain = manifest.get("domain", "")
+
         if args.pack_id == "kp-csu":
             args.pack_id = manifest.get("id", args.pack_id)
         if args.output == Path("dist/kp-csu.duckdb"):
@@ -119,6 +121,7 @@ class CompilerCli:
             skip_embeddings=args.skip_embeddings,
             discover_ontology=args.discover_ontology,
             rules=rules,
+            domain=getattr(args, "domain", ""),
         )
         return 0 if success else 1
 
