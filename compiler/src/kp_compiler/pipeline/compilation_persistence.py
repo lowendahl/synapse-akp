@@ -208,6 +208,7 @@ class CompilationPersistence:
         return {
             "pack_id": pack_id,
             "pack_version": __version__,
+            "domain": next((obj.domain for obj in objects if obj.domain), ""),
             "pack_format_version": "1",
             "schema_version": "2.0.0",
             "ontology_version": ontology_version,
