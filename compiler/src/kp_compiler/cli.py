@@ -54,6 +54,8 @@ class CompilerCli:
         print(f"[manifest] Loaded {pack_yaml}")
 
         args.domain = manifest.get("domain", "")
+        exclude = manifest.get("exclude")
+        args.exclude = list(exclude) if isinstance(exclude, list) else []
 
         if args.pack_id == "kp-csu":
             args.pack_id = manifest.get("id", args.pack_id)
@@ -122,6 +124,7 @@ class CompilerCli:
             discover_ontology=args.discover_ontology,
             rules=rules,
             domain=getattr(args, "domain", ""),
+            exclude=getattr(args, "exclude", None),
         )
         return 0 if success else 1
 

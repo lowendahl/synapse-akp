@@ -37,9 +37,13 @@ class CompilationPreparation:
 
             sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-    def discover_sources(self, source_root: Path, bus: EventBus) -> list[Path]:
-        source_files = self._reader.discover(source_root)
+    def discover_sources(
+        self, source_root: Path, bus: EventBus, exclude: list[str] | None = None
+    ) -> list[Path]:
+        source_files = self._reader.discover(source_root, exclude)
         print(f"[discover] Found {len(source_files)} source files")
+        if exclude:
+            print(f"[discover] Applied {len(exclude)} exclude pattern(s): {', '.join(exclude)}")
         bus.emit(DiscoveryComplete(file_count=len(source_files)))
         return source_files
 
