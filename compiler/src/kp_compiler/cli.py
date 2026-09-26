@@ -57,6 +57,15 @@ class CompilerCli:
         exclude = manifest.get("exclude")
         args.exclude = list(exclude) if isinstance(exclude, list) else []
 
+        # `source_root` decouples the discovery root (where the .md sources live) from the
+        # config dir (where pack.yaml/ontology.yaml/pack-rules.yaml live). This lets a small
+        # sibling pack dir point at an authored tree it does not own — e.g. the website
+        # `knowledge/` tree serves as the single source while its pack config stays out of it
+        # (ADR-010). Resolved relative to the config dir; absent means discover from it.
+        source_root = manifest.get("source_root")
+        if source_root:
+            args.discovery_root = (args.source / source_root).resolve()
+
         if args.pack_id == "kp-csu":
             args.pack_id = manifest.get("id", args.pack_id)
         if args.output == Path("dist/kp-csu.duckdb"):
@@ -99,6 +108,15 @@ class CompilerCli:
 
         self._apply_manifest_defaults(args)
 
+        # The config dir (args.source) holds pack.yaml/ontology/rules; discovery_root is where
+        # the sources are read from. They differ only when pack.yaml declares `source_root`.
+        discovery_root = getattr(args, "discovery_root", None) or args.source
+        if not discovery_root.exists():
+            print(f"Error: source_root '{discovery_root}' does not exist")
+            return 1
+        if discovery_root != args.source:
+            print(f"[manifest] Discovering sources from {discovery_root}")
+
         if not args.discover_ontology and not args.ontology.exists():
             print(f"Error: ontology path '{args.ontology}' does not exist")
             print("Hint: use --discover-ontology to generate one from the corpus")
@@ -115,7 +133,7 @@ class CompilerCli:
             print("[rules] Using defaults (no pack-rules.yaml found)")
 
         success, _diagnostics = PackCompiler().compile_pack(
-            source_root=args.source,
+            source_root=discovery_root,
             ontology_path=args.ontology,
             output_path=args.output,
             pack_id=args.pack_id,
