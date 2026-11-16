@@ -78,7 +78,9 @@ jobs:
       - name: Run architecture boundary tests
         run: pytest tests/test_architecture.py -v
 
+      # Only the runtime package has design gates; the compiler has none.
       - name: Run design quality gates
+        if: matrix.package == 'runtime'
         run: pytest tests/test_design_gates.py -v
 
   # ── Test matrix ─────────────────────────────────────────────
