@@ -18,6 +18,7 @@ from kp_compiler.contracts.protocols import (
     Severity,
 )
 from kp_compiler.domain.models import KnowledgeObject
+from kp_compiler.stages.path_resolver import PathResolver
 
 
 class GraphBuilder:
@@ -58,22 +59,34 @@ class GraphBuilder:
                 source_path=obj.source_path,
             )
 
+        resolver = PathResolver(objects)
         for obj in objects:
             if not obj.id:
                 continue
             for rel in obj.relationships:
-                if rel.object_id and rel.object_id.startswith("/"):
-                    continue
-                if rel.object_id and rel.object_id in graph.nodes:
+                target = self._target(rel.object_id, obj, graph, resolver)
+                if target is not None:
                     graph.add_edge(
                         rel.subject_id,
-                        rel.object_id,
+                        target,
                         predicate=rel.predicate,
                         origin=rel.origin.value,
                         confidence=rel.confidence,
                     )
 
         return graph
+
+    @staticmethod
+    def _target(object_id: str, source: KnowledgeObject, graph: nx.DiGraph, resolver: PathResolver) -> str | None:
+        """The node a relationship points at: an id that is a node, or a path that resolves to one."""
+        if not object_id:
+            return None
+        if object_id in graph.nodes:
+            return object_id
+        if not resolver.is_path(object_id):
+            return None
+        resolved = resolver.resolve(object_id, source.source_path)
+        return resolved if resolved in graph.nodes else None
 
     def _validate(self, graph: nx.DiGraph) -> list[Diagnostic]:
         diagnostics: list[Diagnostic] = []

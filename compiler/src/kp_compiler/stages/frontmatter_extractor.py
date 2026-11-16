@@ -7,6 +7,9 @@ from typing import Any
 
 from kp_compiler.domain.models import Relationship, Section
 
+# A markdown link to another .md file: absolute (/knowledge/a.md) or relative (../a.md), not a URL.
+_MD_LINK = re.compile(r"\[[^\]]+\]\(((?![a-zA-Z][a-zA-Z0-9+.-]*:)[^)\s]+?\.md(?:#[^)\s]*)?)\)")
+
 
 class FrontmatterExtractor:
     """Extracts YAML frontmatter and markdown structure."""
@@ -42,10 +45,22 @@ class FrontmatterExtractor:
         return sections
 
     def extract_relationships(self, body: str, source_id: str) -> list[Relationship]:
-        pattern = re.compile(r"\[([^\]]+)\]\((/[^)]+\.md)\)")
         return [
-            Relationship(subject_id=source_id, predicate="references", object_id=match.group(2))
-            for match in pattern.finditer(body)
+            Relationship(subject_id=source_id, predicate="references", object_id=match.group(1))
+            for match in _MD_LINK.finditer(body)
+        ]
+
+    def extract_source_references(self, frontmatter: dict[str, Any], source_id: str) -> list[Relationship]:
+        """`references` for front-matter `sources` entries that name a markdown record, either as a
+        plain path string or as a mapping with a `resource` path."""
+        paths = [
+            entry.get("resource", "") if isinstance(entry, dict) else entry
+            for entry in frontmatter.get("sources") or []
+        ]
+        return [
+            Relationship(subject_id=source_id, predicate="references", object_id=path)
+            for path in paths
+            if isinstance(path, str) and path.split("#", 1)[0].endswith(".md") and "://" not in path
         ]
 
     def _section(self, heading: str, level: int, lines: list[str], line_start: int) -> Section:

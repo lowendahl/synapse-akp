@@ -38,8 +38,9 @@ class KnowledgeObjectFactory:
     def parse(self, content: str, source_path: str) -> KnowledgeObject:
         frontmatter, body = self._extractor.extract(content)
         obj_type = self._object_type(frontmatter.get("type", ""), source_path)
+        object_id = frontmatter.get("id") or self._derive_id(source_path)
         common = {
-            "id": frontmatter.get("id") or self._derive_id(source_path),
+            "id": object_id,
             "type": obj_type,
             "title": frontmatter.get("title", ""),
             "description": frontmatter.get("description", ""),
@@ -50,7 +51,7 @@ class KnowledgeObjectFactory:
             "status": frontmatter.get("status", "stable"),
             "source_path": source_path,
             "provenance": Provenance(source_file=source_path, stage="parse"),
-            "relationships": self._relationships(body, frontmatter, frontmatter.get("id", "")),
+            "relationships": self._relationships(body, frontmatter, object_id),
             "sections": self._extractor.extract_sections(body),
             "raw_body": body,
         }
@@ -106,8 +107,10 @@ class KnowledgeObjectFactory:
         return ""
 
     def _relationships(self, body: str, frontmatter: dict[str, Any], object_id: str) -> list[Relationship]:
-        return self._extractor.extract_relationships(body, object_id) + self._frontmatter_relationships(
-            frontmatter, object_id
+        return (
+            self._extractor.extract_relationships(body, object_id)
+            + self._extractor.extract_source_references(frontmatter, object_id)
+            + self._frontmatter_relationships(frontmatter, object_id)
         )
 
     def _frontmatter_relationships(self, frontmatter: dict[str, Any], object_id: str) -> list[Relationship]:
