@@ -37,9 +37,7 @@ class CompilationPreparation:
 
             sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-    def discover_sources(
-        self, source_root: Path, bus: EventBus, exclude: list[str] | None = None
-    ) -> list[Path]:
+    def discover_sources(self, source_root: Path, bus: EventBus, exclude: list[str] | None = None) -> list[Path]:
         source_files = self._reader.discover(source_root, exclude)
         print(f"[discover] Found {len(source_files)} source files")
         if exclude:

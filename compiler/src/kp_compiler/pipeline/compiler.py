@@ -50,9 +50,7 @@ class PackCompiler:
         source_files = self._preparation.discover_sources(source_root, bus, exclude)
         self._preparation.maybe_discover_ontology(discover_ontology, source_files, source_root, ontology_path)
         ontology = self._preparation.load_ontology(ontology_path, source_files, source_root)
-        objects, diagnostics = self._preparation.parse_sources(
-            source_files, source_root, bus, ontology, domain
-        )
+        objects, diagnostics = self._preparation.parse_sources(source_files, source_root, bus, ontology, domain)
         self._inject_resolution_roles(objects, ontology)
         validation_diagnostics, errors, warnings = self._projection.validate(objects, ontology, bus)
         diagnostics.extend(validation_diagnostics)

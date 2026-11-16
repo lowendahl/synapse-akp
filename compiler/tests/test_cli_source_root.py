@@ -35,8 +35,14 @@ def test_source_root_points_discovery_at_a_sibling_tree(tmp_path: Path) -> None:
     (sources / "concepts" / "a.md").write_text("# a\n", encoding="utf-8")
 
     config = _config_dir(tmp_path, "../knowledge")
-    args = Namespace(source=config, pack_id="kp-csu", output=Path("dist/kp-csu.duckdb"),
-                     ontology=Path("okf/ontology.yaml"), rules=None, dependency_pack=None)
+    args = Namespace(
+        source=config,
+        pack_id="kp-csu",
+        output=Path("dist/kp-csu.duckdb"),
+        ontology=Path("okf/ontology.yaml"),
+        rules=None,
+        dependency_pack=None,
+    )
     CompilerCli._apply_manifest_defaults(args)
 
     assert args.discovery_root == sources.resolve()
@@ -49,8 +55,14 @@ def test_absent_source_root_leaves_discovery_at_config_dir(tmp_path: Path) -> No
     config = tmp_path / "okf-style"
     config.mkdir()
     (config / "pack.yaml").write_text("id: kp-inline\ndomain: inline\n", encoding="utf-8")
-    args = Namespace(source=config, pack_id="kp-csu", output=Path("dist/kp-csu.duckdb"),
-                     ontology=Path("okf/ontology.yaml"), rules=None, dependency_pack=None)
+    args = Namespace(
+        source=config,
+        pack_id="kp-csu",
+        output=Path("dist/kp-csu.duckdb"),
+        ontology=Path("okf/ontology.yaml"),
+        rules=None,
+        dependency_pack=None,
+    )
     CompilerCli._apply_manifest_defaults(args)
 
     assert not hasattr(args, "discovery_root")
