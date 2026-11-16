@@ -68,3 +68,13 @@ def test_explicit_id_is_the_target_of_a_path_link() -> None:
 def test_unresolvable_and_external_links_are_dropped() -> None:
     edges = _edges({"lib/a.md": "---\ntitle: A\n---\n[x](/knowledge/missing.md) [y](https://e.com/p.md)\n"})
     assert edges == set()
+
+
+def test_top_level_frontmatter_resource_becomes_a_reference() -> None:
+    edges = _edges(
+        {
+            "lib/a.md": "---\ntitle: A\nresource: /knowledge/b.md\n---\nBody.\n",
+            "lib/b.md": "---\ntitle: B\n---\nx\n",
+        }
+    )
+    assert ("lib-a", "references", "lib-b") in edges

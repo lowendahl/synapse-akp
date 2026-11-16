@@ -51,9 +51,9 @@ class FrontmatterExtractor:
         ]
 
     def extract_source_references(self, frontmatter: dict[str, Any], source_id: str) -> list[Relationship]:
-        """`references` for front-matter `sources` entries that name a markdown record, either as a
-        plain path string or as a mapping with a `resource` path."""
-        paths = [
+        """`references` for the front-matter `resource` and `sources` entries that name a markdown
+        record, either as a plain path string or as a mapping with a `resource` path."""
+        paths = [frontmatter.get("resource", "")] + [
             entry.get("resource", "") if isinstance(entry, dict) else entry
             for entry in frontmatter.get("sources") or []
         ]
