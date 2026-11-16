@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from kp_compiler.domain.models import KnowledgeObject, ObjectType, Relationship, Section
+from kp_compiler.domain.models import KnowledgeObject, Relationship, Section
 from kp_compiler.stages.frontmatter_extractor import FrontmatterExtractor
 from kp_compiler.stages.knowledge_object_factory import KnowledgeObjectFactory
 
@@ -25,7 +25,7 @@ class ParseStage:
     def extract_relationships(self, body: str, source_id: str) -> list[Relationship]:
         return self._extractor.extract_relationships(body, source_id)
 
-    def determine_object_type(self, type_name: str) -> ObjectType:
+    def determine_object_type(self, type_name: str) -> str:
         return self._factory.resolve_type(type_name)
 
     def parse_source(self, content: str, source_path: str) -> KnowledgeObject:

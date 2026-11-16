@@ -29,7 +29,7 @@ class SemanticUnitBuilder:
                         heading_path=section.heading,
                         content=section.content,
                         context=self._context(obj, section.heading),
-                        object_type=obj.type.value,
+                        object_type=obj.type,
                         domain=obj.domain,
                     )
                 )
@@ -42,12 +42,12 @@ class SemanticUnitBuilder:
             heading_path="Definition",
             content=f"{obj.title}: {obj.description}",
             context=self._context(obj, "Definition"),
-            object_type=obj.type.value,
+            object_type=obj.type,
             domain=obj.domain,
         )
 
     def _context(self, obj: KnowledgeObject, heading: str) -> str:
-        context = f"Domain: {obj.domain}\nType: {obj.type.value}\nDocument: {obj.title}\nSection: {heading}\n"
+        context = f"Domain: {obj.domain}\nType: {obj.type}\nDocument: {obj.title}\nSection: {heading}\n"
         return context + (f"Aliases: {', '.join(obj.aliases)}\n" if obj.aliases else "")
 
 

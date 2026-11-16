@@ -11,7 +11,7 @@ from kp_compiler.domain.ontology import Ontology
 from kp_compiler.events.bus import DiscoveryComplete, EventBus, LoggingObserver, ParseComplete
 from kp_compiler.infrastructure.filesystem import FilesystemReader
 from kp_compiler.stages.discover_ontology import discover_ontology, generate_ontology_yaml
-from kp_compiler.stages.parse import parse_source
+from kp_compiler.stages.knowledge_object_factory import KnowledgeObjectFactory
 
 
 class CompilationPreparation:
@@ -37,9 +37,11 @@ class CompilationPreparation:
 
             sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-    def discover_sources(self, source_root: Path, bus: EventBus) -> list[Path]:
-        source_files = self._reader.discover(source_root)
+    def discover_sources(self, source_root: Path, bus: EventBus, exclude: list[str] | None = None) -> list[Path]:
+        source_files = self._reader.discover(source_root, exclude)
         print(f"[discover] Found {len(source_files)} source files")
+        if exclude:
+            print(f"[discover] Applied {len(exclude)} exclude pattern(s): {', '.join(exclude)}")
         bus.emit(DiscoveryComplete(file_count=len(source_files)))
         return source_files
 
@@ -83,15 +85,20 @@ class CompilationPreparation:
         source_files: list[Path],
         source_root: Path,
         bus: EventBus,
+        ontology: Ontology,
+        domain: str = "",
     ) -> tuple[list[KnowledgeObject], list[Diagnostic]]:
+        factory = KnowledgeObjectFactory(ontology=ontology, domain=domain)
         objects: list[KnowledgeObject] = []
         diagnostics: list[Diagnostic] = []
         parse_errors = 0
         for file_path in source_files:
-            content = self._reader.read(file_path)
             relative_path = str(file_path.relative_to(source_root.parent)).replace("\\", "/")
+            if relative_path.rsplit("/", 1)[-1] in ("index.md", "log.md"):
+                continue  # OKF reserved files are navigation, not knowledge objects
+            content = self._reader.read(file_path)
             try:
-                objects.append(parse_source(content, relative_path))
+                objects.append(factory.parse(content, relative_path))
             except (OntologyViolation, ValueError, KeyError, TypeError) as error:
                 parse_errors += 1
                 diagnostics.append(Diagnostic(Severity.ERROR, relative_path, f"Parse error: {error}", "parse"))

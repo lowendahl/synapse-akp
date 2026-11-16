@@ -34,6 +34,7 @@ class ObjectTypeSpec:
     optional_fields: list[str] = field(default_factory=list)
     domains: list[str] = field(default_factory=list)
     resolution_role: str = "neutral"
+    aliases: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -43,7 +44,10 @@ class Ontology:
     version: str
     object_types: dict[str, ObjectTypeSpec] = field(default_factory=dict)
     predicates: dict[str, PredicateSpec] = field(default_factory=dict)
-    id_pattern: str = r"^(mcem|csu)\.[a-z_]+\.[a-z0-9-]+$"
+    # Generic default: lowercase slug/qualified id. A pack that wants a stricter
+    # shape (e.g. domain.category.slug) sets constraints.id_format.pattern in its
+    # ontology.yaml — the default is not domain-specific.
+    id_pattern: str = r"^[a-z0-9][a-z0-9._:/-]*$"
 
     @classmethod
     def from_dict(cls, data: dict) -> Ontology:
@@ -57,6 +61,7 @@ class Ontology:
                 optional_fields=spec.get("optional_fields", []),
                 domains=spec.get("domains", []),
                 resolution_role=spec.get("resolution_role", "neutral"),
+                aliases=spec.get("aliases", []),
             )
 
         predicates: dict[str, PredicateSpec] = {}
@@ -88,8 +93,28 @@ class Ontology:
 
     def is_valid_type(self, type_name: str) -> bool:
         """Check if a type name is in the ontology."""
-        # Normalize: "Evidence Source" -> check against keys
-        return type_name in self.object_types or type_name.replace(" ", "_") in self.object_types
+        return self.resolve_type(type_name) is not None
+
+    def resolve_type(self, type_name: str) -> str | None:
+        """Return the canonical type name for a raw frontmatter type, or None.
+
+        Matches a canonical key directly, its space/underscore variant, or any
+        declared alias. This is the single, data-driven type map — the ontology
+        is the source of truth, not a hardcoded table.
+        """
+        candidates = {type_name, type_name.replace(" ", "_")}
+        for name, spec in self.object_types.items():
+            if name in candidates:
+                return name
+            alias_forms = {a for alias in spec.aliases for a in (alias, alias.replace(" ", "_"))}
+            if candidates & alias_forms:
+                return name
+        return None
+
+    def is_measurement(self, canonical_type: str) -> bool:
+        """Whether the canonical type is measurement-shaped (metric/KPI)."""
+        spec = self.object_types.get(canonical_type)
+        return spec is not None and spec.resolution_role == "measurement"
 
     def is_valid_predicate(self, predicate: str) -> bool:
         """Check if a predicate is in the ontology (including inverses)."""
